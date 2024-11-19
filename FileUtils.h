@@ -12,6 +12,7 @@ typedef struct InstanceInfo{
     string type;
     int dimension;
     string edgeWeightType;
+    double distance;
     int capacity;
     int depot;
 } InstanceInfo;
@@ -42,6 +43,8 @@ class FileUtils{
         InstanceObj instance;
 
         if(!inputFile.is_open()) throw runtime_error("Erro ao abrir o arquivo!");
+
+        instance.info.distance = 0;
 
         inputFile >> aux;
         inputFile >> aux;
@@ -74,7 +77,17 @@ class FileUtils{
         cout << "instance capacity: " << instance.info.capacity << "\n";
 
 
-        inputFile >> aux; // NODE_COORD_SECTION
+
+
+        inputFile >> aux; // NODE_COORD_SECTION or DISTANCE
+
+        if (aux == "DISTANCE") {
+            inputFile >> aux;
+            inputFile >> instance.info.distance;
+            inputFile >> aux; 
+        }
+
+        cout << instance.info.distance << "\n";
 
 
         instance.nodeCoords = vector<NodeCoord>(instance.info.dimension);
