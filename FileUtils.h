@@ -1,4 +1,5 @@
 #pragma once
+#include "CVRPInstance.h"
 #include <fstream>
 #include <string>
 #include <vector>
@@ -6,111 +7,83 @@
 
 using namespace std;
 
-typedef struct InstanceInfo{
-    string name;
-    double comment;
-    string type;
-    int dimension;
-    string edgeWeightType;
-    double distance;
-    int capacity;
-    int depot;
-} InstanceInfo;
-
-typedef struct NodeCoord {
-    int node;
-    double x;
-    double y;
-} NodeCoord;
-
-typedef struct Demand {
-    int node;
-    int value;
-} Demand;
-
-typedef struct InstanceObj {
-    InstanceInfo info;
-    vector<NodeCoord> nodeCoords;
-    vector<Demand> demands; 
-} InstanceObj;
-
 class FileUtils{
     public: 
 
-    static InstanceObj readInstanceFile(const string filePath) {
+    static CVRPInstance readInstanceFile(const string filePath) {
         ifstream inputFile(filePath);
-        string aux;
-        InstanceObj instance;
+        string aux, name;
+        double comment, distance = -1;
+        int dimension, vehicleCapacity, depotIndex;
+        vector<int> demands;                 
+        vector<NodeCoord> coordinates;
 
         if(!inputFile.is_open()) throw runtime_error("Erro ao abrir o arquivo!");
 
-        instance.info.distance = 0;
+        inputFile >> aux;
+        inputFile >> aux;
+        inputFile >> name;
+        // cout << "instance name: " << name << "\n";
 
         inputFile >> aux;
         inputFile >> aux;
-        inputFile >> instance.info.name;
-        cout << "instance name: " << instance.info.name << "\n";
-
-        inputFile >> aux;
-        inputFile >> aux;
-        inputFile >> instance.info.comment;
-        cout << "instance comment: " << instance.info.comment << "\n";
+        inputFile >> comment;
+        // cout << "instance comment: " << comment << "\n";
         
         inputFile >> aux;
         inputFile >> aux;
-        inputFile >> instance.info.type;
-        cout << "instance type: " << instance.info.type << "\n";
+        inputFile >> aux; // Ignore type
 
         inputFile >> aux;
         inputFile >> aux;
-        inputFile >> instance.info.dimension;
-        cout << "instance dimension: " << instance.info.dimension << "\n";
+        inputFile >> dimension;
+        // cout << "instance dimension: " << dimension << "\n";
 
         inputFile >> aux;
         inputFile >> aux;
-        inputFile >> instance.info.edgeWeightType;
-        cout << "instance edgeWeightType: " << instance.info.edgeWeightType << "\n";
+        inputFile >> aux; // Ignore edge_weight_type
 
         inputFile >> aux;
         inputFile >> aux;
-        inputFile >> instance.info.capacity;
-        cout << "instance capacity: " << instance.info.capacity << "\n";
-
-
-
+        inputFile >> vehicleCapacity;
+        // cout << "instance capacity: " << vehicleCapacity << "\n";
 
         inputFile >> aux; // NODE_COORD_SECTION or DISTANCE
 
         if (aux == "DISTANCE") {
             inputFile >> aux;
-            inputFile >> instance.info.distance;
+            inputFile >> distance;
             inputFile >> aux; 
         }
 
-        cout << instance.info.distance << "\n";
+        cout << distance << "\n";
 
 
-        instance.nodeCoords = vector<NodeCoord>(instance.info.dimension);
+        coordinates = vector<NodeCoord>(dimension + 1);
 
-        for(int i = 0; i < instance.info.dimension; i++) {
-            inputFile >> instance.nodeCoords[i].node;
-            inputFile >> instance.nodeCoords[i].x;
-            inputFile >> instance.nodeCoords[i].y;
+        for(int i = 0; i < dimension; i++) {
+            int nodeIndex;
+            inputFile >> nodeIndex;
+            inputFile >> coordinates[nodeIndex].x;
+            inputFile >> coordinates[nodeIndex].y;
         }
 
         inputFile >> aux; // DEMAND_SECTION
 
-        instance.demands = vector<Demand>(instance.info.dimension);
+        demands = vector<int>(dimension + 1);
 
-        for(int i = 0; i < instance.info.dimension; i++) {
-            inputFile >> instance.demands[i].node;
-            inputFile >> instance.demands[i].value;
+        for(int i = 0; i < dimension; i++) {
+            int nodeIndex;
+            inputFile >> nodeIndex;
+            inputFile >> demands[nodeIndex];
         }
 
         inputFile >> aux; // DEPOT_SECTION
 
-        inputFile >> instance.info.depot;
-        cout << "instance depot: " << instance.info.depot << "\n";
+        inputFile >> depotIndex;
+        // cout << "instance depot: " << depotIndex << "\n";
+
+        CVRPInstance instance = CVRPInstance(name, comment, dimension, vehicleCapacity, demands, coordinates, distance, depotIndex );
 
         return instance;
         
