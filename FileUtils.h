@@ -13,7 +13,7 @@ class FileUtils{
     static CVRPInstance readInstanceFile(const string filePath) {
         ifstream inputFile(filePath);
         string aux, name;
-        double comment, distance = -1;
+        double comment, distance = -1, serviceTime = -1;
         int dimension, vehicleCapacity, depotIndex;
         vector<int> demands;                 
         vector<NodeCoord> coordinates;
@@ -53,11 +53,16 @@ class FileUtils{
         if (aux == "DISTANCE") {
             inputFile >> aux;
             inputFile >> distance;
-            inputFile >> aux; 
+            inputFile >> aux;
         }
 
-        cout << distance << "\n";
+        if (aux == "SERVICE_TIME") { // SERVICE_TIME or NODE_COORD_SECTION
+            inputFile >> aux;
+            inputFile >> serviceTime;
+            inputFile >> aux; 
+        } 
 
+        // cout << distance << "\n";
 
         coordinates = vector<NodeCoord>(dimension + 1);
 
@@ -83,7 +88,7 @@ class FileUtils{
         inputFile >> depotIndex;
         // cout << "instance depot: " << depotIndex << "\n";
 
-        CVRPInstance instance = CVRPInstance(name, comment, dimension, vehicleCapacity, demands, coordinates, distance, depotIndex );
+        CVRPInstance instance = CVRPInstance(name, comment, dimension, vehicleCapacity, demands, coordinates, distance, serviceTime, depotIndex );
 
         return instance;
         
