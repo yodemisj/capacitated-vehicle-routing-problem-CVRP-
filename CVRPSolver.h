@@ -143,7 +143,7 @@ private:
 public:
     CVRPSolver(): routes() { }
     
-    void solve(CVRPInstance instance) {
+    double solve(CVRPInstance instance) {
         clear();
         initializeRoutes(instance.getDimension(), instance.getDepotIndex());
         calculateSavings(instance);
@@ -163,17 +163,17 @@ public:
         //     cout << "\n";
         // }
 
-        cout << "Cost " << calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex()) << "\n";
+        // cout << "Cost " << calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex()) << "\n";
 
         // cout << "Savings:" << endl;
         // for (const auto& saving : savings) {
         //     cout << "Savin   g(" << get<0>(saving) << ", " << get<1>(saving) 
         //         << ") = " << get<2>(saving) << endl;
         // }
-
+        return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex());
     }
 
-    void solveRCL(CVRPInstance instance, double alpha) {
+    double solveRCL(CVRPInstance instance, double alpha) {
         clear();
 
         random_device rd; 
@@ -209,7 +209,7 @@ public:
         //     cout << "\n";
         // }
 
-        cout << "Cost " << calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex()) << "\n";
+        // cout << "Cost " << calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex()) << "\n";
 
         // cout << "Savings:" << endl;
         // for (const auto& saving : savings) {
@@ -217,6 +217,7 @@ public:
         //         << ") = " << get<2>(saving) << endl;
         // }
 
+        return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex());
     }
 
 };
