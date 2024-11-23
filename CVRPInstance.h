@@ -17,14 +17,15 @@ private:
     int depotIndex;
     double comment;
     double distance;
+    double serviceTime;
     int dimension;                           
     int vehicleCapacity;
     vector<int> demands;                 
     vector<NodeCoord> coordinates;
     vector<vector<double>> distanceMatrix; 
 public: 
-    CVRPInstance(string name, double comment, int dimension, int vehicleCapacity, const vector<int> demands, const vector<NodeCoord> coordinates, double distance = -1, int depotIndex = 1)
-        : name(name), depotIndex(depotIndex), comment(comment), distance(distance), dimension(dimension), vehicleCapacity(vehicleCapacity), demands(demands), coordinates(coordinates)
+    CVRPInstance(string name, double comment, int dimension, int vehicleCapacity, const vector<int> demands, const vector<NodeCoord> coordinates, double distance = -1, double serviceTime = -1, int depotIndex = 1)
+        : name(name), depotIndex(depotIndex), comment(comment), distance(distance), serviceTime(serviceTime), dimension(dimension), vehicleCapacity(vehicleCapacity), demands(demands), coordinates(coordinates)
     {
         calculateDistanceMatrix();
     }
@@ -47,7 +48,10 @@ public:
     }
 
     string getName() const { return name; }
+    int getDepotIndex() const { return depotIndex; }
     int getDimension() const { return dimension; }
+    double getDistance() const { return distance; }
+    double getServiceTime() const { return serviceTime; }
     int getVehicleCapacity() const { return vehicleCapacity; }
     const vector<int>& getDemands() const { return demands; }
     const vector<NodeCoord>& getCoordinates() const { return coordinates; }
@@ -69,7 +73,7 @@ public:
     void printDistanceMatrix() const {
         cout << "\nDistances:\n";
         for (size_t i = 1; i < distanceMatrix.size(); ++i) {
-            for(size_t j = i; j < distanceMatrix[i].size(); j++){
+            for(size_t j = 1; j < distanceMatrix[i].size(); j++){
                 cout << distanceMatrix[i][j] << " ";
             }   
             cout << endl;
