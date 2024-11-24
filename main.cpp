@@ -41,7 +41,7 @@ int main() {
         CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
         cout << "\nINSTANCE: " << instance.getName() << "\n";
 
-        solveInstanceWithMetrics(instance, 0.0, results);
+        solveInstanceWithMetrics(instance, 0.02, results);
     }
 
     for (int i = 1; i <= 20; i++) {
