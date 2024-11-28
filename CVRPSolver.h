@@ -28,7 +28,6 @@ private:
 
     static void calculateSavingsForRange(int start, int end, int dimension, int depotIndex, const vector<vector<double>> &distanceMatrix, vector<tuple<int, int, double>> &localSavings, mutex &mtx)
     {
-
         for (int i = start; i <= end; i++)
         {
             for (int j = i + 1; j <= dimension; j++)
@@ -39,7 +38,7 @@ private:
                                     distanceMatrix[depotIndex][j] -
                                     distanceMatrix[i][j];
 
-                    lock_guard<mutex> lock(mutex);
+                    lock_guard<mutex> lock(mtx);
                     localSavings.emplace_back(i, j, saving);
                 }
             }
@@ -66,7 +65,7 @@ private:
             int end = (i == qtdThreads - 1) ? dimension : (i + 1) * blockSize;
 
             // Lançar a thread para calcular savings no intervalo [start, end]
-            threads.emplace_back(calculateSavingsForRange, start, end, dimension, depotIndex, ref(distanceMatrix), ref(localSavings), ref(mtx));
+            threads.emplace_back(calculateSavingsForRange, start, end, dimension, depotIndex, ref(distanceMatrix), ref(savings), ref(mtx));
         }
 
         for (auto &t : threads)
@@ -74,10 +73,8 @@ private:
             t.join();
         }
 
-        sort(localSavings.begin(), localSavings.end(), [](const auto &a, const auto &b)
+        sort(savings.begin(), savings.end(), [](const auto &a, const auto &b)
              { return get<2>(a) > get<2>(b); });
-
-        savings = move(localSavings);
     }
 
     void mergeRoutes(int customerI, int customerJ, int vehicleCapacity, double distance, int depotIndex, double serviceTime, const vector<vector<double>> distanceMatrix, vector<int> demands)
