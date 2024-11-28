@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <tuple>
 #include <random>
-
+#include <omp.h>
 using namespace std;
 
 class CVRPSolver
@@ -31,6 +31,9 @@ private:
         int depotIndex = instance.getDepotIndex();
         vector<vector<double>> distanceMatrix = instance.getDistanceMatrix();
 
+        vector<tuple<int, int, double>> localSavings;
+
+#pragma omp parallel for collapse(2) shared(localSavings)
         for (int i = 1; i <= dimension; i++)
         {
             for (int j = i + 1; j <= dimension; j++)
@@ -40,13 +43,17 @@ private:
                     double saving = distanceMatrix[depotIndex][i] +
                                     distanceMatrix[depotIndex][j] -
                                     distanceMatrix[i][j];
-                    savings.emplace_back(i, j, saving);
+#pragma omp critical
+                    {
+                        localSavings.emplace_back(i, j, saving);
+                    }
                 }
             }
         }
 
-        sort(savings.begin(), savings.end(), [](const auto &a, const auto &b)
+        sort(localSavings.begin(), localSavings.end(), [](const auto &a, const auto &b)
              { return get<2>(a) > get<2>(b); });
+        savings = move(localSavings);
     }
 
     void mergeRoutes(int customerI, int customerJ, int vehicleCapacity, double distance, int depotIndex, double serviceTime, const vector<vector<double>> distanceMatrix, vector<int> demands)
