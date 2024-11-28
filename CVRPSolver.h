@@ -3,7 +3,8 @@
 #include <algorithm>
 #include <tuple>
 #include <random>
-#include <omp.h>
+#include <thread>
+#include <mutex>
 using namespace std;
 
 class CVRPSolver
@@ -25,16 +26,10 @@ private:
         }
     }
 
-    void calculateSavings(const CVRPInstance &instance)
+    static void calculateSavingsForRange(int start, int end, int dimension, int depotIndex, const vector<vector<double>> &distanceMatrix, vector<tuple<int, int, double>> &localSavings, mutex &mtx)
     {
-        int dimension = instance.getDimension();
-        int depotIndex = instance.getDepotIndex();
-        vector<vector<double>> distanceMatrix = instance.getDistanceMatrix();
 
-        vector<tuple<int, int, double>> localSavings;
-
-#pragma omp parallel for collapse(2) shared(localSavings)
-        for (int i = 1; i <= dimension; i++)
+        for (int i = start; i <= end; i++)
         {
             for (int j = i + 1; j <= dimension; j++)
             {
@@ -43,16 +38,45 @@ private:
                     double saving = distanceMatrix[depotIndex][i] +
                                     distanceMatrix[depotIndex][j] -
                                     distanceMatrix[i][j];
-#pragma omp critical
-                    {
-                        localSavings.emplace_back(i, j, saving);
-                    }
+
+                    lock_guard<mutex> lock(mutex);
+                    localSavings.emplace_back(i, j, saving);
                 }
             }
+        }
+    }
+
+    void calculateSavings(const CVRPInstance &instance)
+    {
+        int dimension = instance.getDimension();
+        int depotIndex = instance.getDepotIndex();
+        vector<vector<double>> distanceMatrix = instance.getDistanceMatrix();
+
+        vector<tuple<int, int, double>> localSavings;
+        mutex mtx;
+
+        int qtdThreads = thread::hardware_concurrency();
+        int blockSize = dimension / qtdThreads;
+
+        vector<thread> threads;
+
+        for (int i = 0; i < qtdThreads; i++)
+        {
+            int start = i * blockSize + 1;
+            int end = (i == qtdThreads - 1) ? dimension : (i + 1) * blockSize;
+
+            // Lançar a thread para calcular savings no intervalo [start, end]
+            threads.emplace_back(calculateSavingsForRange, start, end, dimension, depotIndex, ref(distanceMatrix), ref(localSavings), ref(mtx));
+        }
+
+        for (auto &t : threads)
+        {
+            t.join();
         }
 
         sort(localSavings.begin(), localSavings.end(), [](const auto &a, const auto &b)
              { return get<2>(a) > get<2>(b); });
+
         savings = move(localSavings);
     }
 
