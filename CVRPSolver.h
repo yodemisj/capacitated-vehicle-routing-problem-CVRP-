@@ -156,19 +156,53 @@ private:
     double calculateCost(const vector<vector<double>> distanceMatrix, int depotIndex, double serviceTime)
     {
         double cost = 0;
-        for (vector<int> route : routes)
+        mutex costMtx;
+        int qtdThreads = thread::hardware_concurrency();
+        int qtdRoutes = routes.size();
+        size_t chunkSize = (qtdRoutes + qtdThreads - 1) / qtdThreads;
+
+        auto calculatePartialCost = [&](size_t start, size_t end)
         {
-            cost += distanceMatrix[depotIndex][route.front()];
-            cost += distanceMatrix[route.back()][depotIndex];
-            for (size_t i = 1; i < route.size(); i++)
+            double partialCost = 0;
+
+            for (size_t i = start; i < end; i++)
             {
-                cost += distanceMatrix[route[i - 1]][route[i]];
+                const auto &route = routes[i];
+                if (route.empty())
+                    continue;
+
+                partialCost += distanceMatrix[depotIndex][route.front()];
+                partialCost += distanceMatrix[route.back()][depotIndex];
+                for (size_t j = 1; j < route.size(); j++)
+                {
+                    partialCost += distanceMatrix[route[j - 1]][route[j]];
+                }
+
+                // if (serviceTime > 0)
+                // {
+                //     partialCost += route.size() * serviceTime;
+                // }
             }
 
-            // if (serviceTime > 0)
-            // {
-            //     cost += route.size() * serviceTime;
-            // }
+            lock_guard<mutex> lock(costMtx);
+            cost += partialCost;
+        };
+
+        vector<thread> threads;
+        for (int i = 0; i < qtdThreads; i++)
+        {
+            size_t start = i * chunkSize;
+            size_t end = std::min(start + chunkSize, static_cast<size_t>(qtdRoutes));
+
+            if (start < end)
+            {
+                threads.emplace_back(calculatePartialCost, start, end);
+            }
+        }
+
+        for (auto &thread : threads)
+        {
+            thread.join();
         }
 
         return cost;
