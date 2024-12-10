@@ -155,13 +155,12 @@ private:
 
     double calculateCost(const vector<vector<double>> distanceMatrix, int depotIndex, double serviceTime)
     {
-        double cost = 0;
-        mutex costMtx;
         int qtdThreads = thread::hardware_concurrency();
         int qtdRoutes = routes.size();
         size_t chunkSize = (qtdRoutes + qtdThreads - 1) / qtdThreads;
+        vector<double> partialCosts(qtdThreads, 0.0);
 
-        auto calculatePartialCost = [&](size_t start, size_t end)
+        auto calculatePartialCost = [&](size_t start, size_t end, int threadIndex)
         {
             double partialCost = 0;
 
@@ -183,9 +182,7 @@ private:
                 //     partialCost += route.size() * serviceTime;
                 // }
             }
-
-            lock_guard<mutex> lock(costMtx);
-            cost += partialCost;
+            partialCosts[threadIndex] = partialCost;
         };
 
         vector<thread> threads;
@@ -196,7 +193,7 @@ private:
 
             if (start < end)
             {
-                threads.emplace_back(calculatePartialCost, start, end);
+                threads.emplace_back(calculatePartialCost, start, end, i);
             }
         }
 
@@ -205,7 +202,7 @@ private:
             thread.join();
         }
 
-        return cost;
+        return accumulate(partialCosts.begin(), partialCosts.end(), 0.0);
     }
 
     vector<tuple<int, int, double>> createRCL(double alpha)
