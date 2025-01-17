@@ -29,6 +29,8 @@ void solveInstanceWithMetrics(const CVRPInstance &instance, double alpha, vector
                        CK_WT_ExecTime.count(),
                        RCL,
                        RCL_ExecTime.count()});
+
+    cvrpSolver.run2opt();
 }
 
 int main()
@@ -43,17 +45,18 @@ int main()
         cout << "\nINSTANCE: " << instance.getName() << "\n";
 
         solveInstanceWithMetrics(instance, 0.02, results);
+        
     }
 
-    for (int i = 1; i <= 20; i++)
-    {
-        string instancePath = "./ins/Golden/Golden";
-        instancePath.append(to_string(i)).append(".in");
-        CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
-        cout << "\nINSTANCE: " << instance.getName() << "\n";
+    // for (int i = 1; i <= 20; i++)
+    // {
+    //     string instancePath = "./ins/Golden/Golden";
+    //     instancePath.append(to_string(i)).append(".in");
+    //     CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
+    //     cout << "\nINSTANCE: " << instance.getName() << "\n";
 
-        solveInstanceWithMetrics(instance, 0.02, results);
-    }
+    //     solveInstanceWithMetrics(instance, 0.02, results);
+    // }
 
     // Salvar resultados em um arquivo CSV
     FileUtils::saveCVRPResultsToCSV("cvrp_results.csv", results);

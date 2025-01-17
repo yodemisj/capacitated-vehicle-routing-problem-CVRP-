@@ -174,6 +174,11 @@ private:
         return cost;
     }
 
+    double calculateRouteCost(const vector<int> route, const vector<vector<double>> distanceMatrix, int depotIndex, double serviceTime)
+    {
+        
+    }
+
     vector<tuple<int, int, double>> createRCL(double alpha)
     {
         vector<tuple<int, int, double>> rcl;
@@ -203,6 +208,38 @@ private:
     {
         routes.clear();
         savings.clear();
+    }
+
+    vector<int> swap2Opt(vector<int> route, int i, int j)
+    {
+        vector<int> subRouteMid(route.begin() + i + 1, route.begin() + j + 1);
+        reverse(subRouteMid.begin(), subRouteMid.end());
+
+        vector<int> vectorResult;
+        vectorResult.insert(vectorResult.end(), route.begin(), route.begin() + i + 1);
+        vectorResult.insert(vectorResult.end(), subRouteMid.begin(), subRouteMid.end());
+        vectorResult.insert(vectorResult.end(), route.begin() + j + 1, route.end());
+
+        // cout << " >> ";
+        // for (int node : vectorResult)
+        // {
+        //     std::cout << node << " ";
+        // }
+        // cout << endl;
+        return vectorResult;
+    }
+
+    void generateNeighborhood_2Opt(vector<int> route)
+    {
+        vector<int> bestRoute = route;
+
+        for (size_t i = 0; i < route.size() - 2; i++)
+        {
+            for (size_t j = i + 2; j < route.size() - 1; j++)
+            {
+                vector<int> newRoute = swap2Opt(route, i, j);
+            }
+        }
     }
 
 public:
@@ -273,9 +310,11 @@ public:
 
         cout << "Solved by RCL \n";
 
-        for(size_t i = 0; i < routes.size() ; i++ ) {
+        for (size_t i = 0; i < routes.size(); i++)
+        {
             cout << "Route #" << i + 1 << ": ";
-            for(size_t j = 0; j < routes[i].size(); j++) {
+            for (size_t j = 0; j < routes[i].size(); j++)
+            {
                 cout << routes[i][j] << " ";
             }
             cout << "\n";
@@ -288,7 +327,15 @@ public:
         //     cout << "Savin   g(" << get<0>(saving) << ", " << get<1>(saving)
         //         << ") = " << get<2>(saving) << endl;
         // }
-
+        run2opt();
         return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex(), instance.getServiceTime());
+    }
+
+    void run2opt()
+    {
+        for (auto route : routes)
+        {
+            generateNeighborhood_2Opt(route);
+        }
     }
 };
