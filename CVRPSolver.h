@@ -222,13 +222,15 @@ public:
             mergeRoutes(customerI, customerJ, instance.getVehicleCapacity(), instance.getDistance(), instance.getDepotIndex(), instance.getServiceTime(), instance.getDistanceMatrix(), instance.getDemands());
         }
 
-        // for(size_t i = 0; i < routes.size() ; i++ ) {
-        //     cout << "Route #" << i + 1 << ": ";
-        //     for(size_t j = 0; j < routes[i].size(); j++) {
-        //         cout << routes[i][j] << " ";
-        //     }
-        //     cout << "\n";
-        // }
+        for (size_t i = 0; i < routes.size(); i++)
+        {
+            cout << "Route #" << i + 1 << ": ";
+            for (size_t j = 0; j < routes[i].size(); j++)
+            {
+                cout << routes[i][j] << " ";
+            }
+            cout << "\n";
+        }
 
         // cout << "Cost " << calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex()) << "\n";
 
@@ -271,13 +273,13 @@ public:
 
         cout << "Solved by RCL \n";
 
-        // for(size_t i = 0; i < routes.size() ; i++ ) {
-        //     cout << "Route #" << i + 1 << ": ";
-        //     for(size_t j = 0; j < routes[i].size(); j++) {
-        //         cout << routes[i][j] << " ";
-        //     }
-        //     cout << "\n";
-        // }
+        for(size_t i = 0; i < routes.size() ; i++ ) {
+            cout << "Route #" << i + 1 << ": ";
+            for(size_t j = 0; j < routes[i].size(); j++) {
+                cout << routes[i][j] << " ";
+            }
+            cout << "\n";
+        }
 
         // cout << "Cost " << calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex()) << "\n";
 
