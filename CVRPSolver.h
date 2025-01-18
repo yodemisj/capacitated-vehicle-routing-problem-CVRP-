@@ -219,6 +219,15 @@ private:
         savings.clear();
     }
 
+    void printRoute(const vector<int> route)
+    {
+        for (int node : route)
+        {
+            cout << node << " ";
+        }
+        cout << endl;
+    }
+
     vector<int> swap2Opt(vector<int> route, int i, int j)
     {
         vector<int> subRouteMid(route.begin() + i + 1, route.begin() + j + 1);
@@ -243,7 +252,11 @@ private:
             {
                 vector<int> newRoute = swap2Opt(route, i, j);
                 costRoute = calculateRouteCost(newRoute, instance.getDistanceMatrix(), instance.getDepotIndex());
-                cout << ">> " << costRoute << endl;
+
+                cout << "Permutacao : ";
+                printRoute(newRoute);
+                cout << "COST : " << costRoute << endl
+                     << endl;
             }
         }
     }
@@ -265,15 +278,15 @@ public:
             mergeRoutes(customerI, customerJ, instance.getVehicleCapacity(), instance.getDistance(), instance.getDepotIndex(), instance.getServiceTime(), instance.getDistanceMatrix(), instance.getDemands());
         }
 
-        for (size_t i = 0; i < routes.size(); i++)
-        {
-            cout << "Route #" << i + 1 << ": ";
-            for (size_t j = 0; j < routes[i].size(); j++)
-            {
-                cout << routes[i][j] << " ";
-            }
-            cout << "\n";
-        }
+        // for (size_t i = 0; i < routes.size(); i++)
+        // {
+        //     cout << "Route #" << i + 1 << ": ";
+        //     for (size_t j = 0; j < routes[i].size(); j++)
+        //     {
+        //         cout << routes[i][j] << " ";
+        //     }
+        //     cout << "\n";
+        // }
 
         // cout << "Cost " << calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex()) << "\n";
 
@@ -339,8 +352,17 @@ public:
 
     void run2opt(CVRPInstance instance)
     {
+        int i = 1;
+        double cost = 0;
         for (auto route : routes)
         {
+            cout << "-------------------------------------------" << endl;
+            cout << "Route #" << i++ << ": ";
+            printRoute(route);
+            cost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
+            cout << "COST : " << cost << endl
+                 << endl;
+
             generateNeighborhood_2Opt(route, instance);
         }
     }
