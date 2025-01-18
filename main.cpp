@@ -30,7 +30,7 @@ void solveInstanceWithMetrics(const CVRPInstance &instance, double alpha, vector
                        RCL,
                        RCL_ExecTime.count()});
 
-    cvrpSolver.run2opt();
+
 }
 
 int main()

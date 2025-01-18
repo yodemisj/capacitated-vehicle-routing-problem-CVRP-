@@ -174,9 +174,18 @@ private:
         return cost;
     }
 
-    double calculateRouteCost(const vector<int> route, const vector<vector<double>> distanceMatrix, int depotIndex, double serviceTime)
+    double calculateRouteCost(const vector<int> route, const vector<vector<double>> distanceMatrix, int depotIndex)
     {
-        
+        double cost = 0;
+        cost += distanceMatrix[depotIndex][route.front()];
+        cost += distanceMatrix[route.back()][depotIndex];
+
+        for (size_t i = 1; i < route.size(); i++)
+        {
+            cost += distanceMatrix[route[i - 1]][route[i]];
+        }
+
+        return cost;
     }
 
     vector<tuple<int, int, double>> createRCL(double alpha)
@@ -220,24 +229,21 @@ private:
         vectorResult.insert(vectorResult.end(), subRouteMid.begin(), subRouteMid.end());
         vectorResult.insert(vectorResult.end(), route.begin() + j + 1, route.end());
 
-        // cout << " >> ";
-        // for (int node : vectorResult)
-        // {
-        //     std::cout << node << " ";
-        // }
-        // cout << endl;
         return vectorResult;
     }
 
-    void generateNeighborhood_2Opt(vector<int> route)
+    void generateNeighborhood_2Opt(vector<int> route, CVRPInstance instance)
     {
         vector<int> bestRoute = route;
+        double costRoute = 0;
 
         for (size_t i = 0; i < route.size() - 2; i++)
         {
             for (size_t j = i + 2; j < route.size() - 1; j++)
             {
                 vector<int> newRoute = swap2Opt(route, i, j);
+                costRoute = calculateRouteCost(newRoute, instance.getDistanceMatrix(), instance.getDepotIndex());
+                cout << ">> " << costRoute << endl;
             }
         }
     }
@@ -327,15 +333,15 @@ public:
         //     cout << "Savin   g(" << get<0>(saving) << ", " << get<1>(saving)
         //         << ") = " << get<2>(saving) << endl;
         // }
-        run2opt();
+        run2opt(instance);
         return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex(), instance.getServiceTime());
     }
 
-    void run2opt()
+    void run2opt(CVRPInstance instance)
     {
         for (auto route : routes)
         {
-            generateNeighborhood_2Opt(route);
+            generateNeighborhood_2Opt(route, instance);
         }
     }
 };
