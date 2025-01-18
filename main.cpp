@@ -29,8 +29,6 @@ void solveInstanceWithMetrics(const CVRPInstance &instance, double alpha, vector
                        CK_WT_ExecTime.count(),
                        RCL,
                        RCL_ExecTime.count()});
-
-
 }
 
 int main()
@@ -45,7 +43,7 @@ int main()
         cout << "\nINSTANCE: " << instance.getName() << "\n";
 
         solveInstanceWithMetrics(instance, 0.02, results);
-        
+
     }
 
     // for (int i = 1; i <= 20; i++)
@@ -56,6 +54,20 @@ int main()
     //     cout << "\nINSTANCE: " << instance.getName() << "\n";
 
     //     solveInstanceWithMetrics(instance, 0.02, results);
+    // }
+
+    // CVRPSolver solver;
+    // vector<int> vec = {0, 1, 2, 3, 4, 5, 6, 7};
+    // vector<int> result = solver.swap3Opt(vec, 3, 2, 4, 6);
+
+    // for (int node : vec)
+    // {
+    //     cout << node << " ";
+    // }
+    // cout << endl;
+    // for (int node : result)
+    // {
+    //     cout << node << " ";
     // }
 
     // Salvar resultados em um arquivo CSV

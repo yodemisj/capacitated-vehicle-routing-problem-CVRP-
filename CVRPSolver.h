@@ -239,6 +239,56 @@ private:
         cout << endl;
     }
 
+    int bestMove(int a, int b, int c, int d, int e, int f, CVRPInstance instance)
+    {
+        vector<vector<double>> distances = instance.getDistanceMatrix();
+        double gains[8];
+        double maxGain;
+        int bestCase = 0;
+        int i;
+
+        gains[0] = 0;
+        gains[1] = distances[a][e] + distances[b][f] - distances[a][b] - distances[e][f];
+        gains[2] = distances[c][e] + distances[d][f] - distances[c][d] - distances[e][f];
+        gains[3] = distances[a][c] + distances[b][d] - distances[a][b] - distances[c][d];
+
+        int deletedEdges = distances[a][b] + distances[c][d] + distances[e][f];
+        gains[4] = distances[a][c] + distances[b][e] + distances[d][f] - deletedEdges;
+        gains[5] = distances[a][e] + distances[d][b] + distances[c][f] - deletedEdges;
+        gains[6] = distances[a][d] + distances[e][c] + distances[b][f] - deletedEdges;
+        gains[7] = distances[a][d] + distances[e][b] + distances[c][f] - deletedEdges;
+
+        for (i = 1; i < 8; i++)
+        {
+            if (gains[i] < 0 && gains[i] < maxGain)
+            {
+                bestCase = i;
+                maxGain = gains[i];
+            }
+        }
+
+        return bestCase;
+    }
+
+    void reverseSubRoute(vector<int> &route, int start, int end)
+    {
+        size_t routeSize = route.size();
+        size_t left = start;
+        size_t right = end;
+        int temp;
+
+        size_t half = ((routeSize + end - start + 1) % routeSize) / 2;
+
+        for(size_t i = 0; i < half; i++) {
+            temp = route[right];
+            route[right] = route[left];
+            route[left] = temp;
+
+            left = (left + 1) % routeSize;
+            right = (routeSize + right - 1) % routeSize;
+        }
+    }
+
     vector<int> swap2Opt(vector<int> route, int i, int j)
     {
         vector<int> subRouteMid(route.begin() + i + 1, route.begin() + j + 1);
@@ -252,17 +302,62 @@ private:
         return vectorResult;
     }
 
-    vector<int> swap3Opt(vector<int> route, int i, int j)
+public:
+    vector<int> swap3Opt(vector<int> route, int bestCase, int i, int j, int k)
     {
-        vector<int> subRouteMid(route.begin() + i + 1, route.begin() + j + 1);
-        reverse(subRouteMid.begin(), subRouteMid.end());
+        int routeSize = route.size();
+        auto routeBegin = route.begin();
+        auto routeEnd = route.end();
 
-        vector<int> vectorResult;
-        vectorResult.insert(vectorResult.end(), route.begin(), route.begin() + i + 1);
-        vectorResult.insert(vectorResult.end(), subRouteMid.begin(), subRouteMid.end());
-        vectorResult.insert(vectorResult.end(), route.begin() + j + 1, route.end());
+        switch (bestCase)
+        {
+        case 1:
+            // reverse(routeBegin + ((k + 1) % routeSize), routeBegin + i + 1);
+            reverseSubRoute(route, ((k + 1) % routeSize), i + 1);
+            break;
 
-        return vectorResult;
+        case 2:
+            // reverse(routeBegin + ((j + 1) % routeSize), routeBegin + k + 1);
+            reverseSubRoute(route, ((j + 1) % routeSize), k + 1);
+            break;
+
+        case 3:
+            // reverse(routeBegin + (i + 1) % routeSize, routeBegin + j + 1);
+            reverseSubRoute(route, ((i + 1) % routeSize), j + 1);
+            break;
+
+        case 4:
+            // reverse(routeBegin + ((j + 1) % routeSize), routeBegin + k + 1);
+            // reverse(routeBegin + ((i + 1) % routeSize), routeBegin + j + 1);
+            reverseSubRoute(route, ((j + 1) % routeSize), k + 1);
+            reverseSubRoute(route, ((i + 1) % routeSize), j + 1);
+
+            break;
+
+        case 5:
+            // reverse(routeBegin + ((k + 1) % routeSize), routeBegin + i + 1);
+            // reverse(routeBegin + ((i + 1) % routeSize), routeBegin + j + 1);
+            reverseSubRoute(route, ((k + 1) % routeSize), i + 1);
+            reverseSubRoute(route, ((i + 1) % routeSize), j + 1);
+            break;
+
+        case 6:
+            // reverse(routeBegin + ((k + 1) % routeSize), routeBegin + i + 1);
+            // reverse(routeBegin + ((j + 1) % routeSize), routeBegin + k + 1);
+            reverseSubRoute(route, ((k + 1) % routeSize), i + 1);
+            reverseSubRoute(route, ((j + 1) % routeSize), k + 1);
+            break;
+
+        case 7:
+            // reverse(routeBegin + ((k + 1) % routeSize), routeBegin + i + 1);
+            // reverse(routeBegin + ((i + 1) % routeSize), routeBegin + j + 1);
+            // reverse(routeBegin + ((j + 1) % routeSize), routeBegin + k + 1);
+            reverseSubRoute(route, ((k + 1) % routeSize), i + 1);
+            reverseSubRoute(route, ((i + 1) % routeSize), j + 1);
+            reverseSubRoute(route, ((j + 1) % routeSize), k + 1);
+            break;
+        }
+        return route;
     }
 
     vector<int> generateNeighborhood_2Opt(vector<int> route, CVRPInstance instance)
@@ -303,21 +398,25 @@ private:
             }
 
             route = bestRoute;
-            if(foundImproment) cout << "analizando o vizinho" << endl;
+            if (foundImproment)
+                cout << "analizando o vizinho" << endl;
         }
 
         return bestRoute;
     }
-    
+
     vector<int> generateNeighborhood_3Opt(vector<int> route, CVRPInstance instance)
     {
         vector<int> bestRoute = route;
+        int i, j, k;
+        int a, b, c, d, e, f;
+        int bestCase;
+        int routeSize = route.size();
         int totalDeamnd = 0;
         double newCost = 0;
-        double bestCost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
         bool foundImproment = true;
 
-        if (route.size() <= 3)
+        if (routeSize < 4)
         {
             return route;
         }
@@ -325,29 +424,46 @@ private:
         while (foundImproment)
         {
             foundImproment = false;
-            for (size_t i = 0; i < route.size() - 2; i++)
+            size_t c1, c2, c3;
+
+            for (c1 = 0; c1 < routeSize; c1++)
             {
-                for (size_t j = i + 2; j < route.size() - 1; j++)
+                i = c1;
+                a = route[i];
+                b = route[(i + 1) % routeSize];
+
+                for (c2 = 1; c2 < routeSize - 2; c2++)
                 {
-                    vector<int> newRoute = swap2Opt(route, i, j);
-                    newCost = calculateRouteCost(newRoute, instance.getDistanceMatrix(), instance.getDepotIndex());
+                    j = (i + c2) % routeSize;
+                    c = route[j];
+                    d = route[(j + 1) % routeSize];
 
-                    if (newCost < bestCost)
+                    for (c3 = c2 + 1; c3 < routeSize; c3++)
                     {
-                        bestRoute = newRoute;
-                        bestCost = newCost;
-                        foundImproment = true;
-                        // route = newRoute;
+                        k = (i + c3) % routeSize;
+                        e = route[k];
+                        f = route[(k + 1) % routeSize];
 
-                        cout << "Permutacao : ";
-                        printRoute(newRoute);
-                        cout << "COST : " << newCost << endl;
+                        bestCase = bestMove(a, b, c, d, e, f, instance);
+                        if (bestCase != 0)
+                        {
+                            bestRoute = swap3Opt(route, bestCase, i, j, k);
+                            foundImproment = true;
+                            newCost = calculateRouteCost(bestRoute, instance.getDistanceMatrix(), instance.getDepotIndex());
+
+                            cout << "BEST CASE : " << bestCase << endl;
+                            cout << "Permutacao : ";
+                            printRoute(bestRoute);
+                            cout << "COST : " << newCost << endl;
+                        }
                     }
                 }
             }
 
             route = bestRoute;
-            if(foundImproment) cout << "analizando o vizinho" << endl;
+
+            if (foundImproment)
+                cout << "analizando o vizinho" << endl;
         }
 
         return bestRoute;
@@ -438,7 +554,9 @@ public:
         //     cout << "Savin   g(" << get<0>(saving) << ", " << get<1>(saving)
         //         << ") = " << get<2>(saving) << endl;
         // }
-        run2opt(instance);
+
+        // run2opt(instance);
+        run3opt(instance);
         return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex(), instance.getServiceTime());
     }
 
