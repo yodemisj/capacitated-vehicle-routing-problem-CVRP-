@@ -252,34 +252,102 @@ private:
         return vectorResult;
     }
 
+    vector<int> swap3Opt(vector<int> route, int i, int j)
+    {
+        vector<int> subRouteMid(route.begin() + i + 1, route.begin() + j + 1);
+        reverse(subRouteMid.begin(), subRouteMid.end());
+
+        vector<int> vectorResult;
+        vectorResult.insert(vectorResult.end(), route.begin(), route.begin() + i + 1);
+        vectorResult.insert(vectorResult.end(), subRouteMid.begin(), subRouteMid.end());
+        vectorResult.insert(vectorResult.end(), route.begin() + j + 1, route.end());
+
+        return vectorResult;
+    }
+
     vector<int> generateNeighborhood_2Opt(vector<int> route, CVRPInstance instance)
     {
         vector<int> bestRoute = route;
         int totalDeamnd = 0;
         double newCost = 0;
         double bestCost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
-        
-        if(route.size() <= 3) {
+        bool foundImproment = true;
+
+        if (route.size() <= 3)
+        {
             return route;
         }
 
-        for (size_t i = 0; i < route.size() - 2; i++)
+        while (foundImproment)
         {
-            for (size_t j = i + 2; j < route.size() - 1; j++)
+            foundImproment = false;
+            for (size_t i = 0; i < route.size() - 2; i++)
             {
-                vector<int> newRoute = swap2Opt(route, i, j);
-                newCost = calculateRouteCost(newRoute, instance.getDistanceMatrix(), instance.getDepotIndex());
-
-                if (newCost < bestCost)
+                for (size_t j = i + 2; j < route.size() - 1; j++)
                 {
-                    bestRoute = newRoute;
-                    bestCost = newCost;
+                    vector<int> newRoute = swap2Opt(route, i, j);
+                    newCost = calculateRouteCost(newRoute, instance.getDistanceMatrix(), instance.getDepotIndex());
 
-                    cout << "Permutacao : ";
-                    printRoute(newRoute);
-                    cout << "COST : " << newCost << endl;
+                    if (newCost < bestCost)
+                    {
+                        bestRoute = newRoute;
+                        bestCost = newCost;
+                        foundImproment = true;
+                        // route = newRoute;
+
+                        cout << "Permutacao : ";
+                        printRoute(newRoute);
+                        cout << "COST : " << newCost << endl;
+                    }
                 }
             }
+
+            route = bestRoute;
+            if(foundImproment) cout << "analizando o vizinho" << endl;
+        }
+
+        return bestRoute;
+    }
+    
+    vector<int> generateNeighborhood_3Opt(vector<int> route, CVRPInstance instance)
+    {
+        vector<int> bestRoute = route;
+        int totalDeamnd = 0;
+        double newCost = 0;
+        double bestCost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
+        bool foundImproment = true;
+
+        if (route.size() <= 3)
+        {
+            return route;
+        }
+
+        while (foundImproment)
+        {
+            foundImproment = false;
+            for (size_t i = 0; i < route.size() - 2; i++)
+            {
+                for (size_t j = i + 2; j < route.size() - 1; j++)
+                {
+                    vector<int> newRoute = swap2Opt(route, i, j);
+                    newCost = calculateRouteCost(newRoute, instance.getDistanceMatrix(), instance.getDepotIndex());
+
+                    if (newCost < bestCost)
+                    {
+                        bestRoute = newRoute;
+                        bestCost = newCost;
+                        foundImproment = true;
+                        // route = newRoute;
+
+                        cout << "Permutacao : ";
+                        printRoute(newRoute);
+                        cout << "COST : " << newCost << endl;
+                    }
+                }
+            }
+
+            route = bestRoute;
+            if(foundImproment) cout << "analizando o vizinho" << endl;
         }
 
         return bestRoute;
@@ -387,6 +455,22 @@ public:
             cout << "COST : " << cost << endl;
 
             route = generateNeighborhood_2Opt(route, instance);
+        }
+    }
+
+    void run3opt(CVRPInstance instance)
+    {
+        int i = 1;
+        double cost = 0;
+        for (auto route : routes)
+        {
+            cout << "-------------------------------------------" << endl;
+            cout << "Route #" << i++ << ": ";
+            printRoute(route);
+            cost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
+            cout << "COST : " << cost << endl;
+
+            route = generateNeighborhood_3Opt(route, instance);
         }
     }
 };
