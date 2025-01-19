@@ -198,6 +198,19 @@ private:
 
         return cost;
     }
+    double calculateRouteCostWithDepot(const vector<int> route, const vector<vector<double>> distanceMatrix)
+    {
+        double cost = 0;
+
+        for (size_t i = 1; i < route.size(); i++)
+        {
+            cost += distanceMatrix[route[i - 1]][route[i]];
+        }
+
+        cost += distanceMatrix[route[0]][route.back()];
+
+        return cost;
+    }
 
     vector<tuple<int, int, double>> createRCL(double alpha)
     {
@@ -306,6 +319,7 @@ private:
 public:
     vector<int> swap3Opt(vector<int> route, int bestCase, int i, int j, int k)
     {
+
         int routeSize = route.size();
         auto routeBegin = route.begin();
         auto routeEnd = route.end();
@@ -346,6 +360,27 @@ public:
             break;
         }
         return route;
+    }
+
+    vector<int> removeDepotFromRoute(vector<int> route, int depotIndex)
+    {
+        vector<int> routeResult;
+        int index;
+        for (size_t i = 0; i < route.size(); i++)
+        {
+            if (route[i] == depotIndex)
+            {
+                index = i;
+                break;
+            }
+        }
+
+        for (size_t i = index + 1; i < route.size() + index; i++)
+        {
+            routeResult.push_back(route[i % route.size()]);
+        }
+
+        return routeResult;
     }
 
     vector<int> generateNeighborhood_2Opt(vector<int> route, CVRPInstance instance)
@@ -395,6 +430,7 @@ public:
 
     vector<int> generateNeighborhood_3Opt(vector<int> route, CVRPInstance instance)
     {
+        route.insert(route.begin(), instance.getDepotIndex());
         vector<int> bestRoute = route;
         int i, j, k;
         int a, b, c, d, e, f;
@@ -437,7 +473,7 @@ public:
                         {
                             bestRoute = swap3Opt(route, bestCase, i, j, k);
                             foundImproment = true;
-                            newCost = calculateRouteCost(bestRoute, instance.getDistanceMatrix(), instance.getDepotIndex());
+                            newCost = calculateRouteCostWithDepot(bestRoute, instance.getDistanceMatrix());
 
                             cout << "BEST CASE : " << bestCase << endl;
                             cout << "Permutacao : ";
@@ -454,7 +490,7 @@ public:
                 cout << "analizando o vizinho" << endl;
         }
 
-        return bestRoute;
+        return removeDepotFromRoute(bestRoute, instance.getDepotIndex());
     }
 
 public:
