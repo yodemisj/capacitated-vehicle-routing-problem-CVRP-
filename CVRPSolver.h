@@ -177,7 +177,7 @@ private:
         }
     }
 
-    double calculateCost(const vector<vector<double>> distanceMatrix, int depotIndex, double serviceTime)
+    double calculateCost(const vector<vector<double>> distanceMatrix, int depotIndex)
     {
         double cost = 0;
         for (vector<int> route : routes)
@@ -188,11 +188,6 @@ private:
             {
                 cost += distanceMatrix[route[i - 1]][route[i]];
             }
-
-            // if (serviceTime > 0)
-            // {
-            //     cost += route.size() * serviceTime;
-            // }
         }
 
         return cost;
@@ -257,6 +252,7 @@ private:
         savings.clear();
     }
 
+    public:
     void printRoute(const vector<int> route)
     {
         for (int node : route)
@@ -585,10 +581,18 @@ public:
         //     cout << "Savin   g(" << get<0>(saving) << ", " << get<1>(saving)
         //         << ") = " << get<2>(saving) << endl;
         // }
-        return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex(), instance.getServiceTime());
+        return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex());
     }
 
-    double solveRCL(CVRPInstance instance, double alpha)
+    vector<vector<int>> getRoutes() {
+        return routes;
+    }
+
+    void setRoutes(vector<vector<int>> newRoutes) {
+        routes = newRoutes;
+    }
+
+    void solveRCL(CVRPInstance instance, double alpha)
     {
         clear();
 
@@ -628,57 +632,15 @@ public:
             }
             cout << "\n";
         }
-
-        // cout << "Cost " << calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex()) << "\n";
-
-        // cout << "Savings:" << endl;
-        // for (const auto& saving : savings) {
-        //     cout << "Savin   g(" << get<0>(saving) << ", " << get<1>(saving)
-        //         << ") = " << get<2>(saving) << endl;
-        // }
-
-        // runTabuSearch(instance, 100, 10);
-
-        return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex(), instance.getServiceTime());
     }
 
-    // void run2opt(CVRPInstance instance)
-    // {
-    //     int i = 1;
-    //     double cost = 0;
-    //     for (auto route : routes)
-    //     {
-    //         cout << "-------------------------------------------" << endl;
-    //         cout << "Route #" << i++ << ": ";
-    //         printRoute(route);
-    //         cost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
-    //         cout << "COST : " << cost << endl;
-
-    //         route = generateBestNeighborhood_2Opt(route, instance);
-    //     }
-    // }
-
-    // void run3opt(CVRPInstance instance)
-    // {
-    //     int i = 1;
-    //     double cost = 0;
-    //     for (auto route : routes)
-    //     {
-    //         cout << "-------------------------------------------" << endl;
-    //         cout << "Route #" << i++ << ": ";
-    //         printRoute(route);
-    //         cost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
-    //         cout << "COST : " << cost << endl;
-
-    //         route = generateNeighborhood_3Opt(route, instance);
-    //     }
-    // }
-
-    void runTabuSearch(CVRPInstance instance, int maxIterator, int tabuListSize, bool is2Opt)
+    double runTabuSearch(CVRPInstance instance, int maxIterator, int tabuListSize, bool is2Opt = true, bool isFirstImprovement = true)
     {
-        for (auto route : routes)
-        {
-            tabuSearch(route, instance, maxIterator, tabuListSize, is2Opt);
+        for(size_t i = 0; i < routes.size(); i++) {
+
+            routes[i] = tabuSearch(routes[i], instance, maxIterator, tabuListSize, is2Opt, isFirstImprovement);
         }
+
+        return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex());
     }
 };

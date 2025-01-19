@@ -4,20 +4,55 @@
 #include <string>
 #include <chrono>
 
+#define MAX_ITERATOR 100
+#define TABU_SIZE 10
+
 using namespace std;
 
-void solveInstanceWithMetrics(const CVRPInstance &instance, double alpha, vector<CVRPResult> &results)
+void solveInstanceWithMetrics(const CVRPInstance &instance, double alpha, vector<CVRPSHeuristicResult> &results)
 {
     CVRPSolver cvrpSolver = CVRPSolver();
-    auto start = chrono::high_resolution_clock::now();
-    double CK_WT = cvrpSolver.solve(instance);
-    auto end = chrono::high_resolution_clock::now();
-    chrono::duration<double> CK_WT_ExecTime = end - start;
 
-    start = chrono::high_resolution_clock::now();
-    double RCL = cvrpSolver.solveRCL(instance, alpha);
-    end = chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
+    cvrpSolver.solveRCL(instance, alpha);
+    auto end = chrono::high_resolution_clock::now();
     chrono::duration<double> RCL_ExecTime = end - start;
+
+    vector<vector<int>> originalRoutes = cvrpSolver.getRoutes();
+
+    // 2OPT FIRST IMPROVEMENT
+    start = chrono::high_resolution_clock::now();
+    double TS_2OPT_FI = cvrpSolver.runTabuSearch(instance, MAX_ITERATOR, TABU_SIZE);
+    end = chrono::high_resolution_clock::now();
+    chrono::duration<double> TS_2OPT_FI_ExecTime = end - start + RCL_ExecTime;
+    cout << ">> TS_2OPT_FI: " << TS_2OPT_FI << endl;
+
+    cvrpSolver.setRoutes(originalRoutes);
+
+    // 2OPT BEST IMPROVEMENT
+    start = chrono::high_resolution_clock::now();
+    double TS_2OPT_BI = cvrpSolver.runTabuSearch(instance, MAX_ITERATOR, TABU_SIZE, true, false);
+    end = chrono::high_resolution_clock::now();
+    chrono::duration<double> TS_2OPT_BI_ExecTime = end - start + RCL_ExecTime;
+    cout << ">> TS_2OPT_BI: " << TS_2OPT_BI << endl;
+    
+    cvrpSolver.setRoutes(originalRoutes);
+
+    // 3OPT FIRST IMPROVEMENT
+    start = chrono::high_resolution_clock::now();
+    double TS_3OPT_FI = cvrpSolver.runTabuSearch(instance, MAX_ITERATOR, TABU_SIZE, false);
+    end = chrono::high_resolution_clock::now();
+    chrono::duration<double> TS_3OPT_FI_ExecTime = end - start + RCL_ExecTime;
+    cout << ">> TS_3OPT_FI: " << TS_3OPT_FI << endl;
+
+    cvrpSolver.setRoutes(originalRoutes);
+
+    // 3OPT BEST IMPROVEMENT
+    start = chrono::high_resolution_clock::now();
+    double TS_3OPT_BI = cvrpSolver.runTabuSearch(instance, MAX_ITERATOR, TABU_SIZE, false, false);
+    end = chrono::high_resolution_clock::now();
+    chrono::duration<double> TS_3OPT_BI_ExecTime = end - start + RCL_ExecTime;
+    cout << ">> TS_3OPT_BI: " << TS_3OPT_BI << endl;
 
     // Salvar resultados no vetor
     results.push_back({instance.getName(),
@@ -25,25 +60,29 @@ void solveInstanceWithMetrics(const CVRPInstance &instance, double alpha, vector
                        instance.getVehicleCapacity(),
                        instance.getDistance(),
                        instance.getServiceTime(),
-                       CK_WT,
-                       CK_WT_ExecTime.count(),
-                       RCL,
-                       RCL_ExecTime.count()});
+                       TS_2OPT_FI_ExecTime.count(),
+                       TS_2OPT_BI_ExecTime.count(),
+                       TS_2OPT_FI,
+                       TS_2OPT_BI,
+                       TS_3OPT_FI_ExecTime.count(),
+                       TS_3OPT_BI_ExecTime.count(),
+                       TS_3OPT_FI,
+                       TS_3OPT_BI});
 }
 
 int main()
 {
-    vector<CVRPResult> results;
+    vector<CVRPSHeuristicResult> results;
 
-    // for (int i = 1; i <= 14; i++)
-    // {
-    //     string instancePath = "./ins/Christofields/CMT";
-    //     instancePath.append(to_string(i)).append(".in");
-    //     CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
-    //     cout << "\nINSTANCE: " << instance.getName() << "\n";
+    for (int i = 1; i <= 14; i++)
+    {
+        string instancePath = "./ins/Christofields/CMT";
+        instancePath.append(to_string(i)).append(".in");
+        CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
+        cout << "\nINSTANCE: " << instance.getName() << "\n";
 
-    //     solveInstanceWithMetrics(instance, 0.02, results);
-    // }
+        solveInstanceWithMetrics(instance, 0.02, results);
+    }
 
     for (int i = 1; i <= 20; i++)
     {
@@ -55,22 +94,8 @@ int main()
         solveInstanceWithMetrics(instance, 0.02, results);
     }
 
-    // CVRPSolver solver;
-    // vector<int> vec = { 0, 1, 2, 3, 4, 5, 6, 7};
-    // vector<int> result = solver.swap3Opt(vec, 7, 2, 4, 6);
-
-    // for (int node : vec)
-    // {
-    //     cout << node << " ";
-    // }
-    // cout << endl;
-    // for (int node : result)
-    // {
-    //     cout << node << " ";
-    // }
-
     // Salvar resultados em um arquivo CSV
-    FileUtils::saveCVRPResultsToCSV("cvrp_results.csv", results);
+    FileUtils::saveCVRPSHeuristicResultsToCSV("cvrp_s_heuristic_results.csv", results);
 
     return 0;
 }

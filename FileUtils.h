@@ -23,6 +23,25 @@ struct CVRPResult
     double RCL_ExecTime;
 };
 
+typedef struct CVRPSHeuristicResult
+{
+    string instanceName;
+    int numClients;
+    int vehicleCapacity;
+    double distance;
+    double serviceTime;
+
+    double TS_2OPT_FI_ExecTime;
+    double TS_2OPT_BI_ExecTime;
+    double TS_2OPT_FI;
+    double TS_2OPT_BI;
+
+    double TS_3OPT_FI_ExecTime;
+    double TS_3OPT_BI_ExecTime;
+    double TS_3OPT_FI;
+    double TS_3OPT_BI;
+}CVRPSHeuristicResult;
+
 class FileUtils
 {
 public:
@@ -124,6 +143,33 @@ public:
         string result = aux.str();
         replace(result.begin(), result.end(), '.', ',');
         return result;
+    }
+
+    static void saveCVRPSHeuristicResultsToCSV(const string &filePath, const vector<CVRPSHeuristicResult> &results)
+    {
+        ofstream file(filePath);
+
+        file << "Nome da Instância;Número de Clientes;Capacidade;Distância;Tempo de Serviço;TS_2OPT_FI;TS_2OPT_FI t(s);TS_2OPT_BI;TS_2OPT_BI t(s);TS_3OPT_FI;TS_3OPT_FI t(s);TS_3OPT_BI;TS_3OPT_BI t(s)\n";
+
+        for (const auto &result : results)
+        {
+            file << result.instanceName << ";"
+                 << result.numClients << ";"
+                 << result.vehicleCapacity << ";"
+                 << formatNumber(result.distance, 2) << ";"
+                 << formatNumber(result.serviceTime, 2) << ";"
+                 << formatNumber(result.TS_2OPT_FI, 2) << ";"
+                 << formatNumber(result.TS_2OPT_FI_ExecTime, 7) << ";"
+                 << formatNumber(result.TS_2OPT_BI, 2) << ";"
+                 << formatNumber(result.TS_2OPT_BI_ExecTime, 7) << ";"
+                 << formatNumber(result.TS_3OPT_FI, 2) << ";"
+                 << formatNumber(result.TS_3OPT_FI_ExecTime, 7) << ";"
+                 << formatNumber(result.TS_3OPT_BI, 2) << ";"
+                 << formatNumber(result.TS_3OPT_BI_ExecTime, 7) << ";"
+                 << "\n";
+        }
+
+        file.close();
     }
 
     static void saveCVRPResultsToCSV(const string &filePath, const vector<CVRPResult> &results)
