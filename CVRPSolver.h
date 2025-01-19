@@ -431,69 +431,69 @@ private:
         return Route(bestNeighbor, bestNeighborCost);
     }
 
-    Route generateNeighborhood_3Opt(vector<int> route, CVRPInstance instance)
+    Route generateNeighborhood_3Opt(vector<int> route, CVRPInstance instance, deque<vector<int>> &tabuList)
     {
         route.insert(route.begin(), instance.getDepotIndex());
-        vector<int> bestRoute = route;
         int i, j, k;
         int a, b, c, d, e, f;
         int bestCase;
         int routeSize = route.size();
-        int totalDeamnd = 0;
-        double newCost = 0;
-        bool foundImproment = true;
+        double newNeighborCost = 0;
 
         if (routeSize < 4)
         {
-            return Route(route, newCost);
+            return Route(route, calculateRouteCostWithDepot(route, instance.getDistanceMatrix()));
         }
 
-        while (foundImproment)
+        double bestNeighborCost = numeric_limits<double>::infinity();
+        vector<int> bestNeighbor;
+
+        size_t c1, c2, c3;
+
+        for (c1 = 0; c1 < routeSize; c1++)
         {
-            foundImproment = false;
-            size_t c1, c2, c3;
+            i = c1;
+            a = route[i];
+            b = route[(i + 1) % routeSize];
 
-            for (c1 = 0; c1 < routeSize; c1++)
+            for (c2 = 1; c2 < routeSize - 2; c2++)
             {
-                i = c1;
-                a = route[i];
-                b = route[(i + 1) % routeSize];
+                j = (i + c2) % routeSize;
+                c = route[j];
+                d = route[(j + 1) % routeSize];
 
-                for (c2 = 1; c2 < routeSize - 2; c2++)
+                for (c3 = c2 + 1; c3 < routeSize; c3++)
                 {
-                    j = (i + c2) % routeSize;
-                    c = route[j];
-                    d = route[(j + 1) % routeSize];
+                    k = (i + c3) % routeSize;
+                    e = route[k];
+                    f = route[(k + 1) % routeSize];
 
-                    for (c3 = c2 + 1; c3 < routeSize; c3++)
+                    bestCase = bestMove(a, b, c, d, e, f, instance);
+                    if (bestCase != 0)
                     {
-                        k = (i + c3) % routeSize;
-                        e = route[k];
-                        f = route[(k + 1) % routeSize];
+                        vector<int> newNeighbor = swap3Opt(route, bestCase, i, j, k);
 
-                        bestCase = bestMove(a, b, c, d, e, f, instance);
-                        if (bestCase != 0)
+                        if (find(tabuList.begin(), tabuList.end(), newNeighbor) == tabuList.end())
                         {
-                            bestRoute = swap3Opt(route, bestCase, i, j, k);
-                            foundImproment = true;
-                            newCost = calculateRouteCostWithDepot(bestRoute, instance.getDistanceMatrix());
+                            newNeighborCost = calculateRouteCost(newNeighbor, instance.getDistanceMatrix(), instance.getDepotIndex());
 
-                            cout << "BEST CASE : " << bestCase << endl;
-                            cout << "Permutacao : ";
-                            printRoute(bestRoute);
-                            cout << "COST : " << newCost << endl;
+                            if (newNeighborCost < bestNeighborCost)
+                            {
+                                bestNeighbor = newNeighbor;
+                                bestNeighborCost = newNeighborCost;
+
+                                cout << "BEST CASE : " << bestCase << endl;
+                                cout << "Permutacao : ";
+                                printRoute(bestNeighbor);
+                                cout << "COST : " << newNeighborCost << endl;
+                            }
                         }
                     }
                 }
             }
-
-            route = bestRoute;
-
-            if (foundImproment)
-                cout << "analizando o vizinho" << endl;
         }
 
-        return Route(removeDepotFromRoute(bestRoute, instance.getDepotIndex()), newCost);
+        return Route(removeDepotFromRoute(bestNeighbor, instance.getDepotIndex()), bestNeighborCost);
     }
 
 public:
@@ -517,7 +517,7 @@ public:
         {
             ++iterations;
 
-            Route bestNeighbor = is2Opt ? generateBestNeighborhood_2Opt(currentSolution, instance, tabuList) : generateNeighborhood_3Opt(currentSolution, instance);
+            Route bestNeighbor = is2Opt ? generateBestNeighborhood_2Opt(currentSolution, instance, tabuList) : generateNeighborhood_3Opt(currentSolution, instance, tabuList);
 
             if (bestNeighbor.cost == numeric_limits<double>::infinity())
             {
@@ -637,7 +637,7 @@ public:
         //         << ") = " << get<2>(saving) << endl;
         // }
 
-        runTabuSearch(instance, 100, 10);
+        // runTabuSearch(instance, 100, 10);
 
         return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex(), instance.getServiceTime());
     }
@@ -674,11 +674,11 @@ public:
     //     }
     // }
 
-    void runTabuSearch(CVRPInstance instance, int maxIterator, int tabuListSize)
+    void runTabuSearch(CVRPInstance instance, int maxIterator, int tabuListSize, bool is2Opt)
     {
         for (auto route : routes)
         {
-            route = tabuSearch(route, instance, maxIterator, tabuListSize);
+            tabuSearch(route, instance, maxIterator, tabuListSize, is2Opt);
         }
     }
 };

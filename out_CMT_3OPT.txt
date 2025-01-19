@@ -1,0 +1,454 @@
+
+INSTANCE: CMT1
+Solved by RCL 
+Route #1: 2 33 12 17 39 6 13 47 
+Route #2: 16 46 34 40 31 35 22 30 51 10 11 50 
+Route #3: 18 38 45 43 20 41 42 14 26 15 
+Route #4: 23 3 21 36 37 4 29 32 27 9 
+Route #5: 28 49 24 8 44 25 7 
+Route #6: 48 5 19 
+BEST CASE : 2
+Permutacao : 1 2 33 12 17 39 6 13 47 
+COST : 71.1956
+BEST CASE : 1
+Permutacao : 1 16 46 34 40 31 35 22 30 51 10 11 50 
+COST : 145.519
+
+INSTANCE: CMT2
+Solved by RCL 
+Route #1: 4 45 33 10 40 41 
+Route #2: 13 59 12 54 36 8 27 
+Route #3: 18 
+Route #4: 20 15 60 67 66 39 
+Route #5: 24 57 44 42 43 65 23 62 
+Route #6: 30 49 6 22 29 63 69 
+Route #7: 35 53 28 14 55 9 47 
+Route #8: 52 17 64 2 74 34 3 7 
+Route #9: 73 11 32 26 56 19 51 25 50 
+Route #10: 75 48 37 70 72 61 71 21 38 16 58 
+Route #11: 76 31 46 5 68 
+BEST CASE : 2
+Permutacao : 1 4 45 33 10 40 41 
+COST : 63.2222
+BEST CASE : 2
+Permutacao : 1 24 57 42 44 43 65 23 62 
+COST : 125.829
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 125.829
+Initial cost: 126.635
+BEST CASE : 2
+Permutacao : 1 30 6 49 22 29 63 69 
+COST : 79.597
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 79.597
+Initial cost: 83.3861
+
+INSTANCE: CMT3
+Solved by RCL 
+Route #1: 3 58 88 98 60 93 38 99 94 100 97 96 95 7 
+Route #2: 13 77 4 78 69 81 55 5 73 74 22 41 
+Route #3: 43 16 44 15 45 39 87 17 62 86 92 101 
+Route #4: 51 52 10 82 79 35 36 66 72 67 21 31 71 2 
+Route #5: 54 14 59 27 29 
+Route #6: 75 23 42 76 57 24 68 40 26 56 25 30 80 34 70 
+Route #7: 85 18 46 47 48 37 50 65 64 91 33 12 20 49 
+Route #8: 90 19 61 6 84 9 83 8 32 11 63 89 53 28 
+BEST CASE : 3
+Permutacao : 1 3 58 88 98 60 93 38 99 94 100 97 96 95 7 
+COST : 76.7377
+BEST CASE : 2
+Permutacao : 1 3 58 88 98 93 60 38 99 94 100 97 96 95 7 
+COST : 76.1947
+BEST CASE : 6
+Permutacao : 7 95 96 97 100 60 94 99 38 93 98 88 58 3 1 
+COST : 75.0716
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 75.0716
+Initial cost: 76.7377
+BEST CASE : 2
+Permutacao : 1 90 19 61 6 84 9 83 8 63 11 32 89 53 28 
+COST : 105.437
+BEST CASE : 2
+Permutacao : 1 90 19 61 6 84 9 83 8 89 63 11 32 53 28 
+COST : 104.936
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 104.936
+Initial cost: 108.998
+
+INSTANCE: CMT4
+Solved by RCL 
+Route #1: 15 59 97 25 98 87 44 100 115 62 8 70 24 58 47 
+Route #2: 16 46 92 34 73 126 107 74 118 90 40 76 106 
+Route #3: 45 108 66 94 20 95 42 137 41 89 65 43 93 148 
+Route #4: 54 30 129 85 36 86 37 116 122 117 4 21 60 102 
+Route #5: 64 38 53 138 18 146 110 144 5 150 147 145 
+Route #6: 78 33 120 52 2 82 28 103 13 
+Route #7: 79 39 63 51 131 119 128 17 127 12 
+Route #8: 101 3 84 132 130 22 80 75 35 31 105 10 
+Route #9: 104 6 77 50 11 55 123 125 124 72 91 109 
+Route #10: 139 49 113 61 9 27 114 141 32 83 29 71 81 23 121 
+Route #11: 140 69 7 99 133 134 111 19 56 48 
+Route #12: 143 149 88 151 142 67 14 68 26 96 135 112 136 57 
+BEST CASE : 2
+Permutacao : 1 15 59 97 25 98 87 44 100 115 62 8 70 24 58 47 
+COST : 128.699
+BEST CASE : 2
+Permutacao : 1 16 46 92 73 34 126 107 74 118 90 40 76 106 
+COST : 116.726
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 116.726
+Initial cost: 118.444
+BEST CASE : 2
+Permutacao : 1 45 108 66 94 89 41 137 42 95 20 65 43 93 148 
+COST : 120.886
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 120.886
+Initial cost: 124.492
+BEST CASE : 2
+Permutacao : 1 139 49 113 61 9 27 114 141 83 32 29 71 81 23 121 
+COST : 99.2996
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 99.2996
+Initial cost: 103.074
+
+INSTANCE: CMT5
+Solved by RCL 
+Route #1: 13 51 151 53 109 70 181 133 8 52 150 101 
+Route #2: 16 155 125 21 167 139 38 89 37 123 156 175 173 
+Route #3: 25 146 74 19 147 136 93 149 164 32 163 76 58 
+Route #4: 61 27 82 169 18 127 
+Route #5: 72 130 78 120 11 81 132 190 111 26 57 119 73 107 
+Route #6: 80 154 14 124 84 71 129 20 79 179 36 9 103 177 
+Route #7: 87 29 102 94 157 115 143 92 142 23 187 195 194 
+Route #8: 96 152 77 41 131 188 4 56 118 17 189 
+Route #9: 128 5 126 99 46 30 49 121 31 55 
+Route #10: 140 60 6 104 48 172 22 174 83 122 141 95 65 
+Route #11: 153 3 158 113 34 106 97 62 7 
+Route #12: 160 68 105 184 24 63 117 75 145 108 64 50 183 
+Route #13: 170 40 110 10 162 98 33 148 182 45 
+Route #14: 176 35 47 66 168 100 180 28 59 112 88 
+Route #15: 178 134 15 85 135 86 165 171 12 166 39 
+Route #16: 191 43 114 69 144 90 138 186 91 42 116 161 54 
+Route #17: 196 199 159 193 185 44 200 137 198 2 192 197 67 
+BEST CASE : 2
+Permutacao : 1 13 51 151 53 109 70 181 133 8 52 150 101 
+COST : 82.894
+BEST CASE : 2
+Permutacao : 1 16 155 125 21 167 139 38 89 37 123 156 175 173 
+COST : 114.72
+BEST CASE : 2
+Permutacao : 1 16 155 125 21 167 139 38 89 123 37 156 175 173 
+COST : 113.376
+BEST CASE : 4
+Permutacao : 1 16 155 125 21 89 38 139 167 123 37 156 175 173 
+COST : 112.621
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 112.621
+Initial cost: 114.72
+BEST CASE : 2
+Permutacao : 1 72 130 120 78 11 81 132 190 111 26 57 119 73 107 
+COST : 101.855
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 101.855
+Initial cost: 104.336
+BEST CASE : 4
+Permutacao : 1 154 80 84 124 14 71 129 20 79 179 36 9 103 177 
+COST : 89.899
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 89.899
+Initial cost: 94.6046
+
+INSTANCE: CMT6
+Solved by RCL 
+Route #1: 4 36 37 21 22 30 17 3 
+Route #2: 10 51 35 31 40 34 46 16 38 
+Route #3: 13 6 11 50 39 12 47 
+Route #4: 19 5 18 48 
+Route #5: 33 2 23 29 32 27 9 28 
+Route #6: 45 43 20 41 42 14 26 15 
+Route #7: 49 24 8 44 25 7 
+BEST CASE : 2
+Permutacao : 1 4 36 37 21 22 30 17 3 
+COST : 123.982
+BEST CASE : 2
+Permutacao : 1 4 37 36 21 22 30 17 3 
+COST : 120.556
+BEST CASE : 1
+Permutacao : 3 4 36 37 21 22 30 17 1 
+COST : 120.2
+BEST CASE : 2
+Permutacao : 1 4 36 37 21 30 22 17 3 
+COST : 118.099
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 118.099
+Initial cost: 123.982
+
+INSTANCE: CMT7
+Solved by RCL 
+Route #1: 5 75 29 63 3 69 
+Route #2: 10 26 56 19 51 33 
+Route #3: 15 60 67 66 12 
+Route #4: 16 58 14 55 20 36 54 
+Route #5: 34 64 24 57 42 43 65 
+Route #6: 35 47 28 53 9 8 27 
+Route #7: 41 45 4 25 50 17 52 
+Route #8: 46 30 6 37 48 49 31 
+Route #9: 59 39 11 32 40 73 
+Route #10: 68 13 18 
+Route #11: 70 72 61 71 21 38 
+Route #12: 76 7 74 2 44 23 62 22 
+BEST CASE : 1
+Permutacao : 1 5 75 29 63 3 69 
+COST : 58.7342
+BEST CASE : 3
+Permutacao : 1 10 26 56 19 51 33 
+COST : 92.9711
+BEST CASE : 2
+Permutacao : 1 16 58 14 55 20 54 36 
+COST : 92.8317
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 92.8317
+Initial cost: 93.3538
+BEST CASE : 2
+Permutacao : 1 76 22 62 23 44 2 74 7 
+COST : 94.8045
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 94.8045
+Initial cost: 96.1643
+
+INSTANCE: CMT8
+Solved by RCL 
+Route #1: 2 52 10 79 35 36 66 72 67 21 
+Route #2: 7 97 60 100 94 18 85 6 84 9 83 8 19 
+Route #3: 14 61 90 51 34 82 80 4 78 77 29 
+Route #4: 22 73 75 74 3 58 16 44 43 88 98 96 95 
+Route #5: 28 70 71 31 33 64 91 11 63 89 32 53 
+Route #6: 46 47 48 37 50 65 12 20 49 
+Route #7: 54 27 55 25 30 69 81 13 
+Route #8: 59 41 5 26 56 40 68 24 57 76 23 42 
+Route #9: 99 86 62 17 87 39 45 15 92 101 38 93 
+BEST CASE : 2
+Permutacao : 1 2 21 67 72 66 36 35 79 10 52 
+COST : 130.888
+BEST CASE : 2
+Permutacao : 1 2 52 10 79 35 36 72 66 67 21 
+COST : 129.968
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 129.968
+Initial cost: 131.134
+BEST CASE : 2
+Permutacao : 1 7 97 60 100 94 6 85 18 84 9 83 8 19 
+COST : 97.2221
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 97.2221
+Initial cost: 100.501
+BEST CASE : 2
+Permutacao : 1 59 41 5 56 26 40 68 24 57 76 23 42 
+COST : 121.104
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 121.104
+Initial cost: 124.527
+
+INSTANCE: CMT9
+Solved by RCL 
+Route #1: 6 11 55 50 77 13 48 69 103 47 
+Route #2: 7 58 133 134 14 68 135 56 19 111 140 
+Route #3: 12 127 129 85 36 86 37 116 122 117 
+Route #4: 17 128 54 22 80 75 35 51 131 119 63 39 79 
+Route #5: 49 113 24 99 25 97 26 96 59 15 
+Route #6: 65 20 95 41 89 137 42 67 112 144 
+Route #7: 78 33 120 3 101 52 2 82 139 28 
+Route #8: 81 29 71 4 60 21 132 84 30 130 
+Route #9: 98 87 44 100 115 62 8 70 
+Route #10: 102 23 32 83 27 114 141 9 61 121 
+Route #11: 104 91 72 124 123 125 126 34 73 92 46 16 53 
+Route #12: 107 74 118 90 40 76 106 31 105 10 
+Route #13: 109 38 45 108 66 94 43 93 138 18 64 
+Route #14: 147 5 150 110 149 136 142 151 88 143 148 146 145 57 
+BEST CASE : 2
+Permutacao : 1 6 11 55 50 77 13 48 69 103 47 
+COST : 88.2376
+BEST CASE : 2
+Permutacao : 1 7 58 133 134 68 14 135 56 19 111 140 
+COST : 89.1533
+BEST CASE : 2
+Permutacao : 1 7 58 133 134 135 68 14 56 19 111 140 
+COST : 89.1144
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 89.1144
+Initial cost: 90.349
+BEST CASE : 2
+Permutacao : 1 102 23 32 83 141 114 27 9 61 121 
+COST : 97.5456
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 97.5456
+Initial cost: 98.9246
+BEST CASE : 1
+Permutacao : 57 147 5 150 110 149 136 142 151 88 143 148 146 145 1 
+COST : 60.0105
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 60.0105
+Initial cost: 62.1529
+
+INSTANCE: CMT10
+Solved by RCL 
+Route #1: 14 124 84 71 129 20 79 179 36 9 103 
+Route #2: 16 155 125 21 167 139 38 89 104 6 
+Route #3: 18 77 41 131 13 51 101 150 176 27 82 169 
+Route #4: 22 174 48 156 37 123 175 83 122 141 95 
+Route #5: 30 80 154 28 100 180 168 177 66 47 35 
+Route #6: 40 110 58 10 162 111 26 57 119 73 98 
+Route #7: 52 8 133 181 70 109 53 151 72 130 170 
+Route #8: 55 126 99 46 59 112 88 5 61 128 
+Route #9: 67 197 2 192 159 54 199 105 24 184 68 160 17 
+Route #10: 96 152 45 56 4 118 189 34 194 195 196 106 97 
+Route #11: 114 90 138 186 63 117 75 145 50 183 
+Route #12: 115 143 92 43 69 144 91 42 116 161 
+Route #13: 120 39 166 78 11 81 76 163 190 
+Route #14: 127 7 62 3 158 153 
+Route #15: 140 31 49 60 172 173 121 102 29 65 87 113 
+Route #16: 147 136 93 149 164 32 132 
+Route #17: 178 134 15 85 135 86 165 171 12 
+Route #18: 187 94 157 23 142 137 200 44 191 185 198 193 
+Route #19: 188 33 107 182 148 19 74 146 25 108 64 
+BEST CASE : 1
+Permutacao : 71 14 124 84 1 103 9 36 179 79 20 129 
+COST : 139.788
+BEST CASE : 5
+Permutacao : 71 124 14 84 1 103 9 36 179 79 20 129 
+COST : 138.168
+
+INSTANCE: CMT11
+Solved by RCL 
+Route #1: 9 13 14 15 16 12 11 10 8 7 6 4 5 2 3 89 
+Route #2: 40 38 39 43 42 45 47 48 50 51 52 49 46 44 41 107 
+Route #3: 68 70 71 72 75 73 76 80 81 79 78 77 69 74 99 
+Route #4: 96 97 94 95 98 116 117 101 104 105 108 100 102 103 106 121 120 82 83 
+Route #5: 110 30 33 36 37 32 35 31 34 28 25 23 26 29 24 27 21 22 17 20 18 
+Route #6: 111 54 57 56 59 61 66 65 67 64 63 62 58 55 60 53 
+Route #7: 112 87 86 113 85 84 114 118 19 109 119 115 91 92 90 93 88 
+BEST CASE : 3
+Permutacao : 1 9 13 14 15 16 12 11 10 8 7 6 4 5 2 3 89 
+COST : 135.579
+BEST CASE : 2
+Permutacao : 1 9 13 14 15 16 12 11 10 8 7 6 5 4 2 3 89 
+COST : 134.964
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 134.964
+Initial cost: 135.579
+BEST CASE : 1
+Permutacao : 39 40 38 1 107 41 44 46 49 52 51 50 48 47 45 42 43 
+COST : 355.891
+BEST CASE : 2
+Permutacao : 1 68 70 71 72 75 73 76 79 81 80 78 77 69 74 99 
+COST : 147.497
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 147.497
+Initial cost: 150.795
+BEST CASE : 5
+Permutacao : 20 17 26 23 25 28 34 31 35 32 37 36 33 30 29 24 27 21 22 110 1 18 
+COST : 364.257
+BEST CASE : 2
+Permutacao : 1 111 54 57 56 59 61 64 67 65 66 63 62 58 55 60 53 
+COST : 230.3
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 230.3
+Initial cost: 237.1
+
+INSTANCE: CMT12
+Solved by RCL 
+Route #1: 14 18 19 20 16 15 17 13 12 
+Route #2: 24 27 29 31 30 28 26 25 23 22 21 
+Route #3: 33 34 32 36 38 39 40 37 35 
+Route #4: 48 47 45 46 49 52 51 53 50 44 43 41 42 
+Route #5: 56 55 54 57 59 61 60 58 
+Route #6: 70 67 69 65 62 73 75 63 64 66 68 
+Route #7: 76 8 6 4 2 3 5 7 10 9 11 
+Route #8: 81 78 80 77 74 71 72 79 82 83 84 85 
+Route #9: 91 88 87 86 89 90 92 
+Route #10: 100 101 98 93 94 95 96 97 99 
+BEST CASE : 3
+Permutacao : 1 14 18 19 20 16 15 17 13 12 
+COST : 98.7059
+BEST CASE : 2
+Permutacao : 1 14 18 19 20 16 17 15 13 12 
+COST : 96.3207
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 96.3207
+Initial cost: 98.7059
+BEST CASE : 4
+Permutacao : 1 48 50 53 51 52 49 46 45 47 42 41 43 44 
+COST : 67.6359
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 67.6359
+Initial cost: 70.7645
+BEST CASE : 6
+Permutacao : 84 83 82 79 77 72 71 74 80 78 81 1 85 
+COST : 201.155
+
+INSTANCE: CMT13
+Solved by RCL 
+Route #1: 9 13 14 15 16 12 10 11 4 5 6 84 
+Route #2: 18 17 20 23 26 24 27 30 21 22 
+Route #3: 25 28 31 32 34 35 37 36 33 29 
+Route #4: 42 45 47 50 48 51 52 49 46 44 
+Route #5: 57 54 55 58 53 41 40 43 39 38 
+Route #6: 60 66 63 62 67 64 65 61 59 56 
+Route #7: 69 74 77 78 80 81 79 75 73 76 72 
+Route #8: 85 118 114 2 3 7 8 109 110 19 119 115 
+Route #9: 88 90 91 92 93 94 102 100 105 108 107 106 103 
+Route #10: 96 89 112 87 86 113 82 83 120 121 
+Route #11: 104 101 117 70 71 68 99 111 116 98 95 97 
+BEST CASE : 3
+Permutacao : 1 9 13 14 15 16 12 10 11 4 5 6 84 
+COST : 121.849
+BEST CASE : 2
+Permutacao : 1 9 13 14 15 16 12 10 11 5 4 6 84 
+COST : 120.687
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 120.687
+Initial cost: 121.849
+BEST CASE : 2
+Permutacao : 1 18 17 20 23 26 30 27 24 21 22 
+COST : 191.295
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 191.295
+Initial cost: 193.182
+BEST CASE : 2
+Permutacao : 1 60 66 62 63 67 64 65 61 59 56 
+COST : 209.108
+BEST CASE : 4
+Permutacao : 1 60 66 62 63 65 64 67 61 59 56 
+COST : 208.117
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 208.117
+Initial cost: 212.161
+
+INSTANCE: CMT14
+Solved by RCL 
+Route #1: 4 100 101 98 93 94 95 96 97 99 
+Route #2: 11 14 16 13 15 17 20 19 18 
+Route #3: 21 22 23 25 26 28 30 31 29 27 24 
+Route #4: 33 34 32 36 38 39 40 37 35 
+Route #5: 41 43 47 45 46 49 52 51 53 50 
+Route #6: 42 44 48 
+Route #7: 56 58 55 54 57 59 61 60 
+Route #8: 70 69 65 62 73 75 63 67 66 68 
+Route #9: 76 2 3 5 7 10 12 9 8 6 
+Route #10: 82 79 77 74 71 72 78 80 81 64 
+Route #11: 91 88 87 83 84 85 86 89 90 92 
+BEST CASE : 1
+Permutacao : 1 4 100 101 98 93 94 95 96 97 99 
+COST : 99.026
+BEST CASE : 2
+Permutacao : 1 4 100 101 98 94 93 95 96 97 99 
+COST : 97.6316
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 97.6316
+Initial cost: 99.026
+BEST CASE : 2
+Permutacao : 1 82 79 77 72 71 74 78 80 81 64 
+COST : 128.04
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!
+Iteração 1: Custo Atual = 128.04
+Initial cost: 133.028
