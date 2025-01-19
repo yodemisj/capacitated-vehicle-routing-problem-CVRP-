@@ -5,7 +5,20 @@
 #include <random>
 #include <thread>
 #include <mutex>
+#include <deque>
 using namespace std;
+
+typedef struct Route
+{
+    vector<int> path;
+    double cost;
+
+    Route(vector<int> path, double cost)
+    {
+        this->path = path;
+        this->cost = cost;
+    };
+} Route;
 
 class CVRPSolver
 {
@@ -198,6 +211,7 @@ private:
 
         return cost;
     }
+
     double calculateRouteCostWithDepot(const vector<int> route, const vector<vector<double>> distanceMatrix)
     {
         double cost = 0;
@@ -316,7 +330,6 @@ private:
         return vectorResult;
     }
 
-public:
     vector<int> swap3Opt(vector<int> route, int bestCase, int i, int j, int k)
     {
 
@@ -383,52 +396,42 @@ public:
         return routeResult;
     }
 
-    vector<int> generateNeighborhood_2Opt(vector<int> route, CVRPInstance instance)
+    Route generateBestNeighborhood_2Opt(vector<int> route, CVRPInstance instance, deque<vector<int>> &tabuList)
     {
-        vector<int> bestRoute = route;
-        int totalDeamnd = 0;
-        double newCost = 0;
-        double bestCost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
-        bool foundImproment = true;
+        double newNeighborCost = 0;
+        double routeCost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
 
         if (route.size() <= 3)
         {
-            return route;
+            return Route(route, routeCost);
         }
 
-        while (foundImproment)
+        double bestNeighborCost = numeric_limits<double>::infinity();
+        vector<int> bestNeighbor;
+
+        for (size_t i = 0; i < route.size() - 2; i++)
         {
-            foundImproment = false;
-            for (size_t i = 0; i < route.size() - 2; i++)
+            for (size_t j = i + 2; j < route.size() - 1; j++)
             {
-                for (size_t j = i + 2; j < route.size() - 1; j++)
+                vector<int> newNeighbor = swap2Opt(route, i, j);
+
+                if (find(tabuList.begin(), tabuList.end(), newNeighbor) == tabuList.end())
                 {
-                    vector<int> newRoute = swap2Opt(route, i, j);
-                    newCost = calculateRouteCost(newRoute, instance.getDistanceMatrix(), instance.getDepotIndex());
+                    newNeighborCost = calculateRouteCost(newNeighbor, instance.getDistanceMatrix(), instance.getDepotIndex());
 
-                    if (newCost < bestCost)
+                    if (newNeighborCost < bestNeighborCost)
                     {
-                        bestRoute = newRoute;
-                        bestCost = newCost;
-                        foundImproment = true;
-                        // route = newRoute;
-
-                        cout << "Permutacao : ";
-                        printRoute(newRoute);
-                        cout << "COST : " << newCost << endl;
+                        bestNeighbor = newNeighbor;
+                        bestNeighborCost = newNeighborCost;
                     }
                 }
             }
-
-            route = bestRoute;
-            if (foundImproment)
-                cout << "analizando o vizinho" << endl;
         }
 
-        return bestRoute;
+        return Route(bestNeighbor, bestNeighborCost);
     }
 
-    vector<int> generateNeighborhood_3Opt(vector<int> route, CVRPInstance instance)
+    Route generateNeighborhood_3Opt(vector<int> route, CVRPInstance instance)
     {
         route.insert(route.begin(), instance.getDepotIndex());
         vector<int> bestRoute = route;
@@ -442,7 +445,7 @@ public:
 
         if (routeSize < 4)
         {
-            return route;
+            return Route(route, newCost);
         }
 
         while (foundImproment)
@@ -490,11 +493,66 @@ public:
                 cout << "analizando o vizinho" << endl;
         }
 
-        return removeDepotFromRoute(bestRoute, instance.getDepotIndex());
+        return Route(removeDepotFromRoute(bestRoute, instance.getDepotIndex()), newCost);
     }
 
 public:
     CVRPSolver() : routes() {}
+
+    vector<int> tabuSearch(vector<int> initialSolution, CVRPInstance instance, int maxIterations, int tabuListSize, bool is2Opt = true, bool fisrtImprovement = true)
+    {
+        vector<int> currentSolution = initialSolution;
+        vector<int> bestSolution = initialSolution;
+        const vector<vector<double>> distances = instance.getDistanceMatrix();
+        int depotIndex = instance.getDepotIndex();
+
+        double initialSolutionCost = calculateRouteCost(initialSolution, instance.getDistanceMatrix(), instance.getDepotIndex());
+
+        double bestCost = calculateRouteCost(currentSolution, distances, depotIndex);
+
+        deque<vector<int>> tabuList;
+        int iterations = 0;
+
+        while (iterations < maxIterations)
+        {
+            ++iterations;
+
+            Route bestNeighbor = is2Opt ? generateBestNeighborhood_2Opt(currentSolution, instance, tabuList) : generateNeighborhood_3Opt(currentSolution, instance);
+
+            if (bestNeighbor.cost == numeric_limits<double>::infinity())
+            {
+                break;
+            }
+
+            currentSolution = bestNeighbor.path;
+            if (bestNeighbor.cost < bestCost)
+            {
+                bestSolution = bestNeighbor.path;
+                bestCost = bestNeighbor.cost;
+
+                if (fisrtImprovement)
+                {
+                    cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Primeira melhora!" << endl;
+                    cout << "Iteração " << iterations << ": Custo Atual = " << bestCost << endl;
+                    cout << "Initial cost: " << initialSolutionCost << endl;
+                    break;
+                }
+            }
+            // cout << "bestNeighbor: ";
+            // printRoute(bestNeighbor.path);
+            // cout << "COST: " << bestNeighbor.cost << endl;
+
+            tabuList.push_back(currentSolution);
+            if (tabuList.size() > tabuListSize)
+            {
+                tabuList.pop_front();
+            }
+
+            // cout << "Iteração " << iterations << ": Custo Atual = " << bestCost << endl;
+        }
+
+        return bestSolution;
+    }
 
     double solve(CVRPInstance instance)
     {
@@ -579,40 +637,48 @@ public:
         //         << ") = " << get<2>(saving) << endl;
         // }
 
-        // run2opt(instance);
-        run3opt(instance);
+        runTabuSearch(instance, 100, 10);
+
         return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex(), instance.getServiceTime());
     }
 
-    void run2opt(CVRPInstance instance)
+    // void run2opt(CVRPInstance instance)
+    // {
+    //     int i = 1;
+    //     double cost = 0;
+    //     for (auto route : routes)
+    //     {
+    //         cout << "-------------------------------------------" << endl;
+    //         cout << "Route #" << i++ << ": ";
+    //         printRoute(route);
+    //         cost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
+    //         cout << "COST : " << cost << endl;
+
+    //         route = generateBestNeighborhood_2Opt(route, instance);
+    //     }
+    // }
+
+    // void run3opt(CVRPInstance instance)
+    // {
+    //     int i = 1;
+    //     double cost = 0;
+    //     for (auto route : routes)
+    //     {
+    //         cout << "-------------------------------------------" << endl;
+    //         cout << "Route #" << i++ << ": ";
+    //         printRoute(route);
+    //         cost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
+    //         cout << "COST : " << cost << endl;
+
+    //         route = generateNeighborhood_3Opt(route, instance);
+    //     }
+    // }
+
+    void runTabuSearch(CVRPInstance instance, int maxIterator, int tabuListSize)
     {
-        int i = 1;
-        double cost = 0;
         for (auto route : routes)
         {
-            cout << "-------------------------------------------" << endl;
-            cout << "Route #" << i++ << ": ";
-            printRoute(route);
-            cost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
-            cout << "COST : " << cost << endl;
-
-            route = generateNeighborhood_2Opt(route, instance);
-        }
-    }
-
-    void run3opt(CVRPInstance instance)
-    {
-        int i = 1;
-        double cost = 0;
-        for (auto route : routes)
-        {
-            cout << "-------------------------------------------" << endl;
-            cout << "Route #" << i++ << ": ";
-            printRoute(route);
-            cost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
-            cout << "COST : " << cost << endl;
-
-            route = generateNeighborhood_3Opt(route, instance);
+            route = tabuSearch(route, instance, maxIterator, tabuListSize);
         }
     }
 };
