@@ -279,7 +279,8 @@ private:
 
         size_t half = ((routeSize + end - start + 1) % routeSize) / 2;
 
-        for(size_t i = 0; i < half; i++) {
+        for (size_t i = 1; i < half + 1; i++)
+        {
             temp = route[right];
             route[right] = route[left];
             route[left] = temp;
@@ -312,49 +313,36 @@ public:
         switch (bestCase)
         {
         case 1:
-            // reverse(routeBegin + ((k + 1) % routeSize), routeBegin + i + 1);
-            reverseSubRoute(route, ((k + 1) % routeSize), i + 1);
+            reverseSubRoute(route, ((k + 1) % routeSize), i);
             break;
 
         case 2:
-            // reverse(routeBegin + ((j + 1) % routeSize), routeBegin + k + 1);
-            reverseSubRoute(route, ((j + 1) % routeSize), k + 1);
+            reverseSubRoute(route, ((j + 1) % routeSize), k);
             break;
 
         case 3:
-            // reverse(routeBegin + (i + 1) % routeSize, routeBegin + j + 1);
-            reverseSubRoute(route, ((i + 1) % routeSize), j + 1);
+            reverseSubRoute(route, ((i + 1) % routeSize), j);
             break;
 
         case 4:
-            // reverse(routeBegin + ((j + 1) % routeSize), routeBegin + k + 1);
-            // reverse(routeBegin + ((i + 1) % routeSize), routeBegin + j + 1);
-            reverseSubRoute(route, ((j + 1) % routeSize), k + 1);
-            reverseSubRoute(route, ((i + 1) % routeSize), j + 1);
-
+            reverseSubRoute(route, ((j + 1) % routeSize), k);
+            reverseSubRoute(route, ((i + 1) % routeSize), j);
             break;
 
         case 5:
-            // reverse(routeBegin + ((k + 1) % routeSize), routeBegin + i + 1);
-            // reverse(routeBegin + ((i + 1) % routeSize), routeBegin + j + 1);
-            reverseSubRoute(route, ((k + 1) % routeSize), i + 1);
-            reverseSubRoute(route, ((i + 1) % routeSize), j + 1);
+            reverseSubRoute(route, ((k + 1) % routeSize), i);
+            reverseSubRoute(route, ((i + 1) % routeSize), j);
             break;
 
         case 6:
-            // reverse(routeBegin + ((k + 1) % routeSize), routeBegin + i + 1);
-            // reverse(routeBegin + ((j + 1) % routeSize), routeBegin + k + 1);
-            reverseSubRoute(route, ((k + 1) % routeSize), i + 1);
-            reverseSubRoute(route, ((j + 1) % routeSize), k + 1);
+            reverseSubRoute(route, ((k + 1) % routeSize), i);
+            reverseSubRoute(route, ((j + 1) % routeSize), k);
             break;
 
         case 7:
-            // reverse(routeBegin + ((k + 1) % routeSize), routeBegin + i + 1);
-            // reverse(routeBegin + ((i + 1) % routeSize), routeBegin + j + 1);
-            // reverse(routeBegin + ((j + 1) % routeSize), routeBegin + k + 1);
-            reverseSubRoute(route, ((k + 1) % routeSize), i + 1);
-            reverseSubRoute(route, ((i + 1) % routeSize), j + 1);
-            reverseSubRoute(route, ((j + 1) % routeSize), k + 1);
+            reverseSubRoute(route, ((k + 1) % routeSize), i);
+            reverseSubRoute(route, ((i + 1) % routeSize), j);
+            reverseSubRoute(route, ((j + 1) % routeSize), k);
             break;
         }
         return route;

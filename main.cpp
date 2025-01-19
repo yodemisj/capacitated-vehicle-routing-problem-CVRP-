@@ -35,30 +35,30 @@ int main()
 {
     vector<CVRPResult> results;
 
-    for (int i = 1; i <= 14; i++)
-    {
-        string instancePath = "./ins/Christofields/CMT";
-        instancePath.append(to_string(i)).append(".in");
-        CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
-        cout << "\nINSTANCE: " << instance.getName() << "\n";
-
-        solveInstanceWithMetrics(instance, 0.02, results);
-
-    }
-
-    // for (int i = 1; i <= 20; i++)
+    // for (int i = 1; i <= 14; i++)
     // {
-    //     string instancePath = "./ins/Golden/Golden";
+    //     string instancePath = "./ins/Christofields/CMT";
     //     instancePath.append(to_string(i)).append(".in");
     //     CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
     //     cout << "\nINSTANCE: " << instance.getName() << "\n";
 
     //     solveInstanceWithMetrics(instance, 0.02, results);
+
     // }
+
+    for (int i = 1; i <= 20; i++)
+    {
+        string instancePath = "./ins/Golden/Golden";
+        instancePath.append(to_string(i)).append(".in");
+        CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
+        cout << "\nINSTANCE: " << instance.getName() << "\n";
+
+        solveInstanceWithMetrics(instance, 0.02, results);
+    }
 
     // CVRPSolver solver;
     // vector<int> vec = {0, 1, 2, 3, 4, 5, 6, 7};
-    // vector<int> result = solver.swap3Opt(vec, 3, 2, 4, 6);
+    // vector<int> result = solver.swap3Opt(vec, 7, 2, 4, 6);
 
     // for (int node : vec)
     // {
