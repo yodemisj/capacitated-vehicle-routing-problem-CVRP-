@@ -663,6 +663,8 @@ public:
     {
         int n = instance.getDimension();
         vector<double> V(n + 1, numeric_limits<double>::infinity());
+        vector<int> demands = instance.getDemands();
+        vector<vector<double>> distanceMatrix = instance.getDistanceMatrix();
         V[0] = 0;
 
         for (int i = 1; i <= n; i++)
@@ -673,14 +675,14 @@ public:
 
             do
             {
-                load += loadCost[j];
+                load += demands[j];
                 if (i == j)
                 {
-                    cost += weights[0][j] + weights[j][0];
+                    cost += distanceMatrix[0][j] + distanceMatrix[j][0];
                 }
                 else
                 {
-                    cost = cost - weights[j - 1][0] + weights[j - 1][j] + weights[j][0];
+                    cost = cost - distanceMatrix[j - 1][0] + distanceMatrix[j - 1][j] + distanceMatrix[j][0];
                 }
 
                 if (load <= capacity && cost <= distance)
