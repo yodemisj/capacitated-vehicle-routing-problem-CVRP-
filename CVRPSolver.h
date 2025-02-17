@@ -8,6 +8,18 @@
 #include <deque>
 using namespace std;
 
+typedef struct Chromosome
+{
+    vector<int> nodes;
+    double fitness;
+
+    Chromosome(vector<int> nodes, double fitness)
+    {
+        this->nodes = nodes;
+        this->fitness = fitness;
+    };
+} Chromosome;
+
 typedef struct Route
 {
     vector<int> path;
@@ -252,7 +264,7 @@ private:
         savings.clear();
     }
 
-    public:
+public:
     void printRoute(const vector<int> route)
     {
         for (int node : route)
@@ -584,11 +596,13 @@ public:
         return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex());
     }
 
-    vector<vector<int>> getRoutes() {
+    vector<vector<int>> getRoutes()
+    {
         return routes;
     }
 
-    void setRoutes(vector<vector<int>> newRoutes) {
+    void setRoutes(vector<vector<int>> newRoutes)
+    {
         routes = newRoutes;
     }
 
@@ -636,11 +650,168 @@ public:
 
     double runTabuSearch(CVRPInstance instance, int maxIterator, int tabuListSize, bool is2Opt = true, bool isFirstImprovement = true)
     {
-        for(size_t i = 0; i < routes.size(); i++) {
+        for (size_t i = 0; i < routes.size(); i++)
+        {
 
             routes[i] = tabuSearch(routes[i], instance, maxIterator, tabuListSize, is2Opt, isFirstImprovement);
         }
 
         return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex());
+    }
+
+    int splitProcedure(CVRPInstance instance, vector<int> &P, int capacity, int distance)
+    {
+        int n = instance.getDimension();
+        vector<double> V(n + 1, numeric_limits<double>::infinity());
+        V[0] = 0;
+
+        for (int i = 1; i <= n; i++)
+        {
+            int load = 0;
+            int cost = 0;
+            int j = i;
+
+            do
+            {
+                load += loadCost[j];
+                if (i == j)
+                {
+                    cost += weights[0][j] + weights[j][0];
+                }
+                else
+                {
+                    cost = cost - weights[j - 1][0] + weights[j - 1][j] + weights[j][0];
+                }
+
+                if (load <= capacity && cost <= distance)
+                {
+                    if (V[i - 1] + cost < V[j])
+                    { // Relaxa
+                        V[j] = V[i - 1] + cost;
+                        P[j] = i - 1;
+                    }
+                    j++;
+                }
+                else
+                {
+                    break;
+                }
+
+            } while (j <= n);
+        }
+
+        return V[n];
+    }
+
+    Chromosome parseToChromosome(vector<vector<int>> routes)
+    {
+        // PS: não consideramos o depósito
+        vector<int> result;
+        for (vector<int> subroute : routes)
+        {
+            result.insert(result.end(), subroute.begin(), subroute.end());
+        }
+
+        splitProcedure(result);
+    }
+
+    void runGeneticAlgorithm(CVRPInstance instance, double alpha)
+    {
+        int k, tryCount;
+
+        const int maxIterations = 30000;
+        const int maxNoImprovementIterations = 10000;
+        int noImprovementCount = 0, improvementStreak = 0;
+        int populationSize;
+
+        solveRCL(instance, alpha);
+
+        Chromosome solution_1 = Chromosome(); // Solução da heurística CW
+
+        population[0] = solution_1;
+        population[1] = solution_2;
+
+        k = !isSpaced() ? 0 : 1;
+
+        population[k + 1] = solution_3;
+
+        if (isSpaced())
+            k = k + 1;
+
+        while (k < POPULATION_SIZE && tryCount <= TRY_NUMBER)
+        {
+            k = k + 1;
+            tryCount = 0;
+
+            while (isSpaced() && tryCount <= TRY_NUMBER)
+            {
+                tryCount += 1;
+                Chromosome randomSolution = generateRandomSolution();
+                population[k] = randomSolution;
+            }
+        }
+
+        if (tryCount > TRY_NUMBER)
+            populationSize = k - 1;
+
+        sortSolutions();
+
+        int iterations = 0;
+        while (iterations < maxIterations && noImprovementCount < maxNoImprovementIterations && population[0].fitness != lowerBound())
+        {
+            Chromosome P1 = selectParent();
+            Chromosome P2 = selectParent();
+
+            vector<int> childSolution;
+            random_device rd;
+            mt19937 gen(rd());
+            uniform_int_distribution<> dis(0, 1);
+
+            pair<vector<int>, vector<int>> children = crossoverOX(P1.nodes, P2.nodes);
+            childSolution = dis(gen) == 0 ? children.first : children.second;
+
+            k = getRandomNumberInRange(populationSize / 2, populationSize);
+            double random = getRandomDouble(0.0, 1.0);
+            double pm = 0.05;
+            if (random < pm)
+            {
+                vector<int> mutation = localSearch(childSolution);
+                vector<int> p(adj.size());
+                int fit = splitProcedure(p, 10, INF);
+                Chromosome mutatedChromosome = Chromosome(mutation, p, fit);
+
+                Chromosome aux = population[k];
+                population[k] = mutatedChromosome;
+
+                if (isSpaced())
+                {
+                    childSolution = mutatedChromosome.nodes;
+                }
+
+                p.clear();
+                fit = splitProcedure(p, 10, INF);
+                Chromosome childChromosome = Chromosome(childSolution, p, fit);
+
+                population[k] = childChromosome;
+
+                if (isSpaced())
+                {
+                    iterations++;
+                    if (childChromosome.fitness < population[0].fitness)
+                    {
+                        noImprovementCount = 0;
+                    }
+                    else
+                    {
+                        noImprovementCount += 1;
+                    }
+                    sortSolutions(); // Era melhor usar um shift para mover apenas novo elemento para a posição correta
+                }
+                else
+                {
+                    population[k] = aux;
+                }
+            }
+        }
     }
 };

@@ -4,8 +4,8 @@
 #include <string>
 #include <chrono>
 
-#define MAX_ITERATOR 100
-#define TABU_SIZE 10
+#define MAX_ITERATOR 1000
+#define TABU_SIZE 100
 
 using namespace std;
 
