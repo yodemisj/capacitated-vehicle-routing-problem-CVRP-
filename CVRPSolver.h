@@ -8,6 +8,9 @@
 #include <deque>
 using namespace std;
 
+#define POPULATION_SIZE 30
+#define TRY_NUMBER 50
+
 typedef struct Chromosome
 {
     vector<int> nodes;
@@ -264,6 +267,64 @@ private:
         savings.clear();
     }
 
+    bool isSpaced(vector<Chromosome> population, double delta = 0.5) {
+        int populationSize = population.size();
+        
+        for (int i = 0; i < populationSize; ++i) {
+            for (int j = i + 1; j < populationSize; ++j) {
+                if (population[i].nodes.empty() || population[j].nodes.empty()) continue;
+
+                if (abs(population[i].fitness - population[j].fitness) < delta) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+
+    Chromosome generateRandomSolution(CVRPInstance instance) {
+        vector<int> solution;
+        vector<int> P(instance.getDimension());
+
+        for (int i = 1; i < instance.getDimension(); ++i) {
+            solution.push_back(i);
+        }
+
+        random_device rd;
+        mt19937 gen(rd());
+
+        shuffle(solution.begin(), solution.end(), gen);
+        int fitness = splitProcedure(instance, solution);
+        return Chromosome(solution, fitness);
+    }
+
+    void sortSolutions(vector<Chromosome> population) {
+        sort(population.begin(), population.end());
+    }
+
+    Chromosome selectParent(vector<Chromosome> population) {
+        int populationSize = population.size();
+
+        int idx1 = rand() % populationSize;
+        int idx2 = rand() % populationSize;
+
+        if (population[idx1].fitness < population[idx2].fitness) {
+            return population[idx1];
+        } else {
+            return population[idx2];
+        }
+    }
+
+    double getRandomDouble(double min, double max) {
+        if (min > max) {
+            swap(min, max);
+        }
+
+        mt19937 rng(static_cast<unsigned int>(time(nullptr))); 
+        uniform_real_distribution<double> dist(min, max); 
+        return dist(rng); 
+    }
 public:
     void printRoute(const vector<int> route)
     {
@@ -504,6 +565,69 @@ public:
         return Route(removeDepotFromRoute(bestNeighbor, instance.getDepotIndex()), bestNeighborCost);
     }
 
+    pair<vector<int>, vector<int>> crossoverOX(const vector<int> p1, const vector<int> p2) {
+        int p1Size = p1.size();
+        int p2Size = p2.size();
+
+        if (p1Size != p2Size) {
+            return {};
+        }
+
+        vector<int> c1(p1Size), c2(p1Size);
+
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> dis(1, p1Size - 2);
+
+        int i = dis(gen);
+        int j = dis(gen);
+
+        if (j <= i) {
+            swap(i, j);
+        }
+
+        for(int k = i; k <= j; k++) {
+            c1[k] = p1[k];
+            c2[k] = p2[k];
+        }
+        
+        int indexC1 = (j + 1) % p1Size; 
+        int indexC2 = (j + 1) % p1Size; 
+
+        for (int k = j + 1; k < p1Size + j + 1; k++) {
+            int index = k % p1Size;
+
+            auto itP1 = find(c2.begin(), c2.end(), p1[index]);
+            auto itP2 = find(c1.begin(), c1.end(), p2[index]);
+
+            if(itP1 == c2.end()) {
+                c2[indexC2] = p1[index];
+                indexC2++;
+                indexC2 %= p1Size;
+            }
+
+            if(itP2 == c1.end()) {
+                c1[indexC1] = p2[index];
+                indexC1++;
+                indexC1 %= p1Size;
+            }
+        }
+    }
+
+    int getRandomNumberInRange(int min, int max) {
+        if (min > max) {
+            swap(min, max);
+        }
+
+        return min + rand() % (max - min + 1);
+    }
+
+    void shiftSolution(vector<Chromosome> &population, const size_t k) {
+        while((population[k].fitness < population[k-1].fitness) || (population[k].fitness > population[k+1].fitness)) {
+            if((population[k].fitness < population[k-1].fitness)) swap(population[k], population[k-1]);
+            else if((population[k].fitness > population[k+1].fitness)) swap(population[k], population[k+1]);
+        }
+    }
 public:
     CVRPSolver() : routes() {}
 
@@ -659,8 +783,10 @@ public:
         return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex());
     }
 
-    int splitProcedure(CVRPInstance instance, vector<int> &P, int capacity, int distance)
+    double splitProcedure(CVRPInstance instance, vector<int> &P)
     {
+        int capacity = instance.getVehicleCapacity();
+        int distance = instance.getDistance();
         int n = instance.getDimension();
         vector<double> V(n + 1, numeric_limits<double>::infinity());
         vector<int> demands = instance.getDemands();
@@ -670,7 +796,7 @@ public:
         for (int i = 1; i <= n; i++)
         {
             int load = 0;
-            int cost = 0;
+            double cost = 0;
             int j = i;
 
             do
@@ -690,7 +816,7 @@ public:
                     if (V[i - 1] + cost < V[j])
                     { // Relaxa
                         V[j] = V[i - 1] + cost;
-                        P[j] = i - 1;
+                        // P[j] = i - 1;
                     }
                     j++;
                 }
@@ -705,7 +831,7 @@ public:
         return V[n];
     }
 
-    Chromosome parseToChromosome(vector<vector<int>> routes)
+    Chromosome parseToChromosome(CVRPInstance instance, vector<vector<int>> routes)
     {
         // PS: não consideramos o depósito
         vector<int> result;
@@ -714,30 +840,31 @@ public:
             result.insert(result.end(), subroute.begin(), subroute.end());
         }
 
-        splitProcedure(result);
+        double fitness = splitProcedure(instance, result);
+        // return Chromosome(result, fitness);
     }
 
     void runGeneticAlgorithm(CVRPInstance instance, double alpha)
     {
         int k, tryCount;
-
+        vector<Chromosome> population;
         const int maxIterations = 30000;
         const int maxNoImprovementIterations = 10000;
         int noImprovementCount = 0, improvementStreak = 0;
         int populationSize;
+        population.reserve(POPULATION_SIZE);
 
         solveRCL(instance, alpha);
-
-        Chromosome solution_1 = Chromosome(); // Solução da heurística CW
+        Chromosome solution_1 = parseToChromosome(instance, this->routes); // Solução da heurística CW
 
         population[0] = solution_1;
-        population[1] = solution_2;
+        // population[1] = solution_2;
 
-        k = !isSpaced() ? 0 : 1;
+        // k = !isSpaced() ? 0 : 1;
 
-        population[k + 1] = solution_3;
+        // population[k + 1] = solution_3;
 
-        if (isSpaced())
+        if (isSpaced(population))
             k = k + 1;
 
         while (k < POPULATION_SIZE && tryCount <= TRY_NUMBER)
@@ -745,10 +872,10 @@ public:
             k = k + 1;
             tryCount = 0;
 
-            while (isSpaced() && tryCount <= TRY_NUMBER)
+            while (isSpaced(population) && tryCount <= TRY_NUMBER)
             {
                 tryCount += 1;
-                Chromosome randomSolution = generateRandomSolution();
+                Chromosome randomSolution = generateRandomSolution(instance);
                 population[k] = randomSolution;
             }
         }
@@ -756,13 +883,13 @@ public:
         if (tryCount > TRY_NUMBER)
             populationSize = k - 1;
 
-        sortSolutions();
+        sortSolutions(population);
 
         int iterations = 0;
         while (iterations < maxIterations && noImprovementCount < maxNoImprovementIterations && population[0].fitness != lowerBound())
         {
-            Chromosome P1 = selectParent();
-            Chromosome P2 = selectParent();
+            Chromosome P1 = selectParent(population);
+            Chromosome P2 = selectParent(population);
 
             vector<int> childSolution;
             random_device rd;
@@ -778,25 +905,25 @@ public:
             if (random < pm)
             {
                 vector<int> mutation = localSearch(childSolution);
-                vector<int> p(adj.size());
-                int fit = splitProcedure(p, 10, INF);
-                Chromosome mutatedChromosome = Chromosome(mutation, p, fit);
+                // vector<int> p(instance.getDimension());
+                int fitness = splitProcedure(instance, mutation);
+                Chromosome mutatedChromosome = Chromosome(mutation, fitness);
 
                 Chromosome aux = population[k];
                 population[k] = mutatedChromosome;
 
-                if (isSpaced())
+                if (isSpaced(population))
                 {
                     childSolution = mutatedChromosome.nodes;
                 }
 
-                p.clear();
-                fit = splitProcedure(p, 10, INF);
-                Chromosome childChromosome = Chromosome(childSolution, p, fit);
+                // p.clear();
+                fitness = splitProcedure(instance, childSolution);
+                Chromosome childChromosome = Chromosome(childSolution, fitness);
 
                 population[k] = childChromosome;
 
-                if (isSpaced())
+                if (isSpaced(population))
                 {
                     iterations++;
                     if (childChromosome.fitness < population[0].fitness)
@@ -807,7 +934,7 @@ public:
                     {
                         noImprovementCount += 1;
                     }
-                    sortSolutions(); // Era melhor usar um shift para mover apenas novo elemento para a posição correta
+                    shiftSolution(population, k);
                 }
                 else
                 {
