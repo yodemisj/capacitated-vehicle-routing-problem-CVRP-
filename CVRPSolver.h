@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <tuple>
 #include <random>
-#include <thread>
-#include <mutex>
+// #include <thread>
+// #include <mutex>
 #include <deque>
 using namespace std;
 
@@ -56,55 +56,25 @@ private:
         }
     }
 
-    static void calculateSavingsForRange(int start, int end, int dimension, int depotIndex, const vector<vector<double>> &distanceMatrix, vector<tuple<int, int, double>> &localSavings, mutex &mtx)
-    {
-        for (int i = start; i <= end; i++)
-        {
-            for (int j = i + 1; j <= dimension; j++)
-            {
-                if (i != depotIndex && j != depotIndex)
-                {
-                    double saving = distanceMatrix[depotIndex][i] +
-                                    distanceMatrix[depotIndex][j] -
-                                    distanceMatrix[i][j];
-
-                    lock_guard<mutex> lock(mtx);
-                    localSavings.emplace_back(i, j, saving);
-                }
-            }
-        }
-    }
-
-    void calculateSavings(const CVRPInstance &instance)
-    {
+    void calculateSavings(const CVRPInstance& instance) {
         int dimension = instance.getDimension();
         int depotIndex = instance.getDepotIndex();
         vector<vector<double>> distanceMatrix = instance.getDistanceMatrix();
 
-        vector<tuple<int, int, double>> localSavings;
-        mutex mtx;
-
-        int qtdThreads = thread::hardware_concurrency();
-        int blockSize = dimension / qtdThreads;
-
-        vector<thread> threads;
-
-        for (int i = 0; i < qtdThreads; i++)
-        {
-            int start = i * blockSize + 1;
-            int end = (i == qtdThreads - 1) ? dimension : (i + 1) * blockSize;
-
-            // Lançar a thread para calcular savings no intervalo [start, end]
-            threads.emplace_back(calculateSavingsForRange, start, end, dimension, depotIndex, ref(distanceMatrix), ref(savings), ref(mtx));
+        for (int i = 1; i <= dimension; i++) {
+            for (int j = i + 1; j <= dimension; j++) {
+                if (i != depotIndex && j != depotIndex) {
+                    double saving = distanceMatrix[depotIndex][i] + 
+                                    distanceMatrix[depotIndex][j] - 
+                                    distanceMatrix[i][j];
+                    savings.emplace_back(i, j, saving);
+                }
+            }
         }
 
-        for (auto &t : threads)
-        {
-            t.join();
-        }
-
-        sort(savings.begin(), savings.end(), [](const auto &a, const auto &b)
-             { return get<2>(a) > get<2>(b); });
+        sort(savings.begin(), savings.end(), [](const auto& a, const auto& b) {
+            return get<2>(a) > get<2>(b);
+        });
     }
 
     int calculateRouteDemand(vector<int> route, vector<int> demands)
@@ -287,6 +257,7 @@ private:
 
     Chromosome generateRandomSolution(CVRPInstance instance) {
         vector<int> solution;
+        vector<int> P;
         vector<int> P(instance.getDimension());
 
         for (int i = 1; i < instance.getDimension(); ++i) {
@@ -297,8 +268,8 @@ private:
         mt19937 gen(rd());
 
         shuffle(solution.begin(), solution.end(), gen);
-        int fitness = splitProcedure(instance, solution);
-        return Chromosome(solution, fitness);
+        int fitness = splitProcedure(instance, solution, P);
+        return Chromosome(solution, P, fitness);
     }
 
     void sortSolutions(vector<Chromosome> population) {
@@ -631,8 +602,41 @@ public:
         }
     }
 
-    Chromosome localSearch() {
-        
+    vector<int> generateBestNeighborhood_2Opt_GA(vector<int> route, CVRPInstance instance)
+    {
+        double newNeighborCost = 0;
+        double routeCost = calculateRouteCost(route, instance.getDistanceMatrix(), instance.getDepotIndex());
+
+        if (route.size() <= 3)
+        {
+            return route;
+        }
+
+        double bestNeighborCost = numeric_limits<double>::infinity();
+        vector<int> bestNeighbor;
+
+        for (size_t i = 0; i < route.size() - 2; i++)
+        {
+            for (size_t j = i + 2; j < route.size() - 1; j++)
+            {
+                vector<int> newNeighbor = swap2Opt(route, i, j);
+
+                newNeighborCost = calculateRouteCost(newNeighbor, instance.getDistanceMatrix(), instance.getDepotIndex());
+
+                if (newNeighborCost < bestNeighborCost)
+                {
+                    bestNeighbor = newNeighbor;
+                    bestNeighborCost = newNeighborCost;
+                }
+            }
+        }
+
+        return bestNeighbor;
+    }
+
+    vector<int> localSearch(CVRPInstance instance, vector<int> route) {
+        vector<int> newRoute = generateBestNeighborhood_2Opt_GA(route, instance);
+        return newRoute;
     }
 public:
     CVRPSolver() : routes() {}
@@ -913,7 +917,7 @@ public:
             double pm = 0.05;
             if (random < pm)
             {
-                vector<int> mutation = localSearch(childSolution);
+                vector<int> mutation = localSearch(instance, childSolution);
                 vector<int> P(instance.getDimension());
                 int fitness = splitProcedure(instance, mutation, P);
                 Chromosome mutatedChromosome = Chromosome(mutation, P, fitness);
