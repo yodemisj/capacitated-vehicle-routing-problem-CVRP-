@@ -628,6 +628,10 @@ public:
             else if((population[k].fitness > population[k+1].fitness)) swap(population[k], population[k+1]);
         }
     }
+
+    Chromosome localSearch() {
+        
+    }
 public:
     CVRPSolver() : routes() {}
 
