@@ -14,12 +14,14 @@ using namespace std;
 typedef struct Chromosome
 {
     vector<int> nodes;
+    vector<int> P;
     double fitness;
 
-    Chromosome(vector<int> nodes, double fitness)
+    Chromosome(vector<int> nodes, vector<int> p, double fitness)
     {
         this->nodes = nodes;
         this->fitness = fitness;
+        this->P = p;
     };
 } Chromosome;
 
@@ -787,7 +789,7 @@ public:
         return calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex());
     }
 
-    double splitProcedure(CVRPInstance instance, vector<int> &P)
+    double splitProcedure(const CVRPInstance instance, const vector<int> routes, vector<int> &P)
     {
         int capacity = instance.getVehicleCapacity();
         int distance = instance.getDistance();
@@ -808,11 +810,11 @@ public:
                 load += demands[j];
                 if (i == j)
                 {
-                    cost += distanceMatrix[0][j] + distanceMatrix[j][0];
+                    cost += distanceMatrix[routes[0]][routes[j]] + distanceMatrix[routes[j]][routes[0]];
                 }
                 else
                 {
-                    cost = cost - distanceMatrix[j - 1][0] + distanceMatrix[j - 1][j] + distanceMatrix[j][0];
+                    cost = cost - distanceMatrix[routes[j - 1]][routes[0]] + distanceMatrix[routes[j-1]][routes[j]] + distanceMatrix[routes[j]][routes[0]];
                 }
 
                 if (load <= capacity && cost <= distance)
@@ -820,7 +822,7 @@ public:
                     if (V[i - 1] + cost < V[j])
                     { // Relaxa
                         V[j] = V[i - 1] + cost;
-                        // P[j] = i - 1;
+                        P[j] = i - 1;
                     }
                     j++;
                 }
@@ -839,13 +841,14 @@ public:
     {
         // PS: não consideramos o depósito
         vector<int> result;
+        vector<int> P;
         for (vector<int> subroute : routes)
         {
             result.insert(result.end(), subroute.begin(), subroute.end());
         }
 
-        double fitness = splitProcedure(instance, result);
-        // return Chromosome(result, fitness);
+        double fitness = splitProcedure(instance, result, P);
+        return Chromosome(result, P, fitness);
     }
 
     void runGeneticAlgorithm(CVRPInstance instance, double alpha)
@@ -871,6 +874,7 @@ public:
         if (isSpaced(population))
             k = k + 1;
 
+
         while (k < POPULATION_SIZE && tryCount <= TRY_NUMBER)
         {
             k = k + 1;
@@ -890,7 +894,8 @@ public:
         sortSolutions(population);
 
         int iterations = 0;
-        while (iterations < maxIterations && noImprovementCount < maxNoImprovementIterations && population[0].fitness != lowerBound())
+        // while (iterations < maxIterations && noImprovementCount < maxNoImprovementIterations && population[0].fitness != lowerBound())
+        while (iterations < maxIterations && noImprovementCount < maxNoImprovementIterations)
         {
             Chromosome P1 = selectParent(population);
             Chromosome P2 = selectParent(population);
@@ -909,9 +914,9 @@ public:
             if (random < pm)
             {
                 vector<int> mutation = localSearch(childSolution);
-                // vector<int> p(instance.getDimension());
-                int fitness = splitProcedure(instance, mutation);
-                Chromosome mutatedChromosome = Chromosome(mutation, fitness);
+                vector<int> P(instance.getDimension());
+                int fitness = splitProcedure(instance, mutation, P);
+                Chromosome mutatedChromosome = Chromosome(mutation, P, fitness);
 
                 Chromosome aux = population[k];
                 population[k] = mutatedChromosome;
@@ -921,9 +926,9 @@ public:
                     childSolution = mutatedChromosome.nodes;
                 }
 
-                // p.clear();
-                fitness = splitProcedure(instance, childSolution);
-                Chromosome childChromosome = Chromosome(childSolution, fitness);
+                P.clear();
+                fitness = splitProcedure(instance, childSolution, P);
+                Chromosome childChromosome = Chromosome(childSolution, P, fitness);
 
                 population[k] = childChromosome;
 
