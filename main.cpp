@@ -72,30 +72,38 @@ void solveInstanceWithMetrics(const CVRPInstance &instance, double alpha, vector
 
 int main()
 {
-    vector<CVRPSHeuristicResult> results;
+    // vector<CVRPSHeuristicResult> results;
 
-    for (int i = 1; i <= 14; i++)
-    {
-        string instancePath = "./ins/Christofields/CMT";
-        instancePath.append(to_string(i)).append(".in");
-        CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
-        cout << "\nINSTANCE: " << instance.getName() << "\n";
+    CVRPSolver cvrpSolver = CVRPSolver();
+    string instancePath = "./ins/Christofields/CMT";
+    instancePath.append(to_string(1)).append(".in");
+    CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
+    cout << "\nINSTANCE: " << instance.getName() << "\n";
 
-        solveInstanceWithMetrics(instance, 0.02, results);
-    }
+    cvrpSolver.runGeneticAlgorithm(instance, 0.02);
 
-    for (int i = 1; i <= 20; i++)
-    {
-        string instancePath = "./ins/Golden/Golden";
-        instancePath.append(to_string(i)).append(".in");
-        CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
-        cout << "\nINSTANCE: " << instance.getName() << "\n";
+    // for (int i = 1; i <= 14; i++)
+    // {
+    //     string instancePath = "./ins/Christofields/CMT";
+    //     instancePath.append(to_string(i)).append(".in");
+    //     CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
+    //     cout << "\nINSTANCE: " << instance.getName() << "\n";
 
-        solveInstanceWithMetrics(instance, 0.02, results);
-    }
+    //     solveInstanceWithMetrics(instance, 0.02, results);
+    // }
+
+    // for (int i = 1; i <= 20; i++)
+    // {
+    //     string instancePath = "./ins/Golden/Golden";
+    //     instancePath.append(to_string(i)).append(".in");
+    //     CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
+    //     cout << "\nINSTANCE: " << instance.getName() << "\n";
+
+    //     solveInstanceWithMetrics(instance, 0.02, results);
+    // }
 
     // Salvar resultados em um arquivo CSV
-    FileUtils::saveCVRPSHeuristicResultsToCSV("cvrp_s_heuristic_results.csv", results);
+    // FileUtils::saveCVRPSHeuristicResultsToCSV("cvrp_s_heuristic_results.csv", results);
 
     return 0;
 }
