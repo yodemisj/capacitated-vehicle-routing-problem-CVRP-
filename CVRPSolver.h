@@ -253,6 +253,15 @@ private:
         return true;
     }
 
+    bool isSpaced(vector<Chromosome> population, Chromosome newChromosome, double delta = 0.5) {
+        for (size_t i = 0; i < population.size(); i++) {
+            if (abs(population[i].fitness - newChromosome.fitness) < delta) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     Chromosome generateRandomSolution(CVRPInstance instance, mt19937 &gen) {
         vector<int> solution;
         vector<int> P(instance.getDimension());
@@ -561,8 +570,13 @@ public:
         
         int i = dis(gen);
         int j = dis(gen);
+
+        while (i == j)
+        {
+            j = dis(gen);
+        }
         
-        if (j <= i) {
+        if (j < i) {
             swap(i, j);
         }
 
@@ -826,7 +840,7 @@ public:
                 {
                     if (V[route[i - 1]] + cost < V[route[j]]) { // Relaxa
                         V[route[j]] = V[route[i - 1]] + cost;
-                        P[route[j]] = route[i - 1]; // to do: verificar isso aqui 
+                        // P[route[j]] = route[i - 1]; // to do: verificar isso aqui 
                     }
                     j++;
                 }
@@ -843,7 +857,7 @@ public:
     Chromosome parseToChromosome(CVRPInstance instance, vector<vector<int>> routes)
     {
         vector<int> result;
-        vector<int> P(instance.getDimension());
+        vector<int> P(instance.getDimension() + 1);
         result.push_back(instance.getDepotIndex());
         for (vector<int> subroute : routes)
         {
@@ -853,54 +867,61 @@ public:
         return Chromosome(result, P, fitness);
     }
 
-    // Parâmetros: rho = número de cromossomos a substituir (por exemplo, 4)
-// maxRestartAttempts = número máximo de tentativas de reinicialização (por exemplo, 5)
-    // void partialReplacement(vector<Chromosome>& population, CVRPInstance instance, int rho = 4, int maxRestartAttempts = 5) {
-    //     int replacements = 0;
-    //     int attempts = 0;
-        
-    //     while (replacements < rho && attempts < maxRestartAttempts) {
-    //         attempts++;
-            
-    //         // Gera um novo cromossomo aleatório bem espaçado
-    //         Chromosome newChrom = generateRandomSolution(instance, gen);
-    //         // Verifica se, ao inserir, a população permanece bem espaçada
-    //         if (!isSpaced(population, newChrom)) {
-    //             // Se não for espaçada, pode-se aplicar um procedimento adicional (por exemplo, cruzar com outros)
-    //             Chromosome bestChild = newChrom;
-    //             // Para cada cromossomo da população (ou um subconjunto), realize o crossover
-    //             for (const Chromosome& parent : population) {
-    //                 Chromosome child = crossoverOX(newChrom.nodes, parent.nodes, gen); // função de crossover adaptada
-    //                 if (child.fitness < bestChild.fitness) {
-    //                     bestChild = child;
-    //                 }
-    //             }
-    //             newChrom = bestChild;
-    //         }
-            
-    //         // Se o novo cromossomo for melhor que o pior da população, substitua-o
-    //         if (newChrom.fitness < population.back().fitness) {
-    //             population.back() = newChrom;
-    //             replacements++;
-    //             // Reordene a população para manter o espaçamento (se necessário)
-    //             sort(population.begin(), population.end(), [](const Chromosome& a, const Chromosome& b) {
-    //                 return a.fitness < b.fitness;
-    //             });
-    //         }
-    //     }
-    // }
+    void partialReplacement(vector<Chromosome>& population, CVRPInstance instance, int rho = 8, int maxRestartAttempts = 5) {
+        int replacements = 0;
+        int attempts = 0;
+        int tryCount = 0;
+        vector<Chromosome> newPopulation;
+        newPopulation.reserve(8);
+
+        while (replacements < rho && attempts < maxRestartAttempts) {
+            attempts++;
+            newPopulation.clear();
+            int tryCount = 0;
+            while(newPopulation.size() < 8 && tryCount < TRY_NUMBER) {
+                Chromosome newChrom = generateRandomSolution(instance, gen);
+                
+                if(isSpaced(population, newChrom) && isSpaced(newPopulation, newChrom)) {
+                    newPopulation.push_back(newChrom);
+                    shiftSolution(newPopulation, newPopulation.size() - 1);
+                }
+            }
+            for(int k = 0; k < newPopulation.size(); k++) {
+                Chromosome bestChild = newPopulation[k];
+                
+                for (const Chromosome& parent : population) {
+                    if(bestChild.fitness < population.back().fitness) break;
+                    vector<int> P(instance.getDimension());
+                    pair<vector<int>, vector<int>> children = crossoverOX(newPopulation[k].nodes, parent.nodes, gen);
+                    int fit1 = splitProcedure(instance, children.first, P);
+                    int fit2 = splitProcedure(instance, children.second, P);
+                    vector<int> child = (fit1 <= fit2) ? children.first : children.second;
+                    int fit = (fit1 < fit2) ? fit1 : fit2;
+                    Chromosome childChromosome = Chromosome(child, P, fit);
+                    if (isSpaced(population, childChromosome) && childChromosome.fitness < bestChild.fitness) {
+                        bestChild = childChromosome;
+                    }
+                }
+                
+                if (bestChild.fitness < population.back().fitness) {
+                    population.back() = bestChild;
+                    replacements++;
+                    shiftSolution(population, population.size() - 1);
+                }
+            }
+        }   
+    }
 
     void genCWSolutions(CVRPInstance instance, vector<Chromosome> &population, int n, double alpha) {
         int k = 0;
         int tryCount = 0;
         while(k < n && tryCount <= TRY_NUMBER) {
             tryCount = 0;
-
             while (tryCount <= TRY_NUMBER)
             {
                 tryCount += 1;
                 solveRCL(instance, alpha);
-                Chromosome solution_1 = parseToChromosome(instance, this->routes); // Solução da heurística CW
+                Chromosome solution_1 = parseToChromosome(instance, this->routes);
                 cout << solution_1.fitness << endl;
                 if (tryCount == 1)
                     population.push_back(solution_1);
@@ -914,62 +935,12 @@ public:
         if (tryCount > TRY_NUMBER) population.pop_back();
     }
 
-    void runGeneticAlgorithm(CVRPInstance instance, double alpha)
-    {
-        int k, tryCount = 0;
-        vector<Chromosome> population;
-        const int maxIterations = 30000;
-        const int maxNoImprovementIterations = 10000;
-        int noImprovementCount = 0, improvementStreak = 0;
-        int populationSize;
-        population.reserve(POPULATION_SIZE);
-
-        // solveRCL(instance, alpha);
-        // cout<<calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex())<<endl;
-        
-        // Chromosome solution_1 = parseToChromosome(instance, this->routes); // Solução da heurística CW
-        // cout << "Fitness: " << solution_1.fitness << endl;
-        // population.push_back(solution_1);
-
-        genCWSolutions(instance, population, 3, alpha);
-        cout << "P[0]: " << population[0].fitness << endl;
-        cout << "P[1]: " << population[1].fitness << endl;
-        cout << "P[2]: " << population[2].fitness << endl;
-
-        // routes.clear();
-        // solveRCL(instance, alpha);
-        // cout<<calculateCost(instance.getDistanceMatrix(), instance.getDepotIndex())<<endl;
-
-        // k = 0;
-        k = population.size() - 1;
-
-        while (k < POPULATION_SIZE && tryCount <= TRY_NUMBER)
-        {
-            k++;
-            tryCount = 0;
-
-            while (tryCount <= TRY_NUMBER)
-            {
-                tryCount += 1;
-                Chromosome randomSolution = generateRandomSolution(instance, gen);
-                if (tryCount == 1)
-                    population.push_back(randomSolution);
-                else 
-                    population.back() = randomSolution;
-                if(isSpaced(population, k)) break;
-            }
-            shiftSolution(population, k);
-        }
-        if (tryCount > TRY_NUMBER) population.pop_back();
-
-        populationSize = population.size();
-
-        cout<<"population size: " << populationSize << "\n";
-
+    void runPhase(CVRPInstance instance, vector<Chromosome> &population, int maxIterations, int maxNoImprovementIterations, int k, double pm) {
         int iterations = 0;
+        int noImprovementCount = 0;
+        int populationSize = population.size();
         while (iterations < maxIterations && noImprovementCount < maxNoImprovementIterations)
         {
-            // cout << "Parte de cima do algoritimo" << endl; 
             Chromosome P1 = selectParent(population);
             Chromosome P2 = selectParent(population);
 
@@ -982,7 +953,6 @@ public:
             
             k = getRandomInt((populationSize - 1) / 2, populationSize - 1, gen);
             double random = getRandomDouble(0.0, 1.0, gen);
-            double pm = 0.20;
             Chromosome aux = population[k];
             if (random < pm)
             {
@@ -1017,8 +987,66 @@ public:
             {
                 population[k] = aux;
             }
-            // cout << "Fim do algoritimo" << endl; 
         }
+    }
+
+    void runGeneticAlgorithm(CVRPInstance instance, double alpha)
+    {
+        int k, tryCount = 0;
+        vector<Chromosome> population;
+        int maxIterations = 30000;
+        int maxNoImprovementIterations = 10000;
+        int noImprovementCount = 0, improvementStreak = 0;
+        int populationSize;
+        population.reserve(POPULATION_SIZE);
+
+        genCWSolutions(instance, population, 3, alpha);
+        cout << "P[0]: " << population[0].fitness << endl;
+        // cout << "P[1]: " << population[1].fitness << endl;
+        // cout << "P[2]: " << population[2].fitness << endl;
+
+        k = population.size() - 1;
+
+        while (k < POPULATION_SIZE && tryCount <= TRY_NUMBER)
+        {
+            k++;
+            tryCount = 0;
+
+            while (tryCount <= TRY_NUMBER)
+            {
+                tryCount += 1;
+                Chromosome randomSolution = generateRandomSolution(instance, gen);
+                if (tryCount == 1)
+                    population.push_back(randomSolution);
+                else 
+                    population.back() = randomSolution;
+                if(isSpaced(population, k)) break;
+            }
+            shiftSolution(population, k);
+        }
+        if (tryCount > TRY_NUMBER) population.pop_back();
+
+        int maxPhases;
+        int pm = 0.05;
+        bool isCMT = instance.getName().find("CMT")!= string::npos;
+        if(isCMT) {
+            runPhase(instance, population, maxIterations, maxNoImprovementIterations, k, pm);
+            maxPhases = 10;
+            pm = 0.1;
+            partialReplacement(population, instance);
+        } else {
+            maxPhases = 8;
+            pm = 0.2;
+        }
+        
+        maxIterations = 2000;
+        maxNoImprovementIterations = 2000;
+        
+        for (int phase = 0; phase < maxPhases; phase++) {
+            runPhase(instance, population, maxIterations, maxNoImprovementIterations, k, pm);
+            partialReplacement(population, instance);
+        }
+        
         
         cout <<"Melhor Valor: " << population[0].fitness << endl;
         cout <<"Segundo Melhor Valor: " << population[1].fitness << endl;

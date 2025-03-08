@@ -75,8 +75,9 @@ int main()
     // vector<CVRPSHeuristicResult> results;
 
     CVRPSolver cvrpSolver = CVRPSolver();
-    string instancePath = "./ins/Christofields/CMT";
-    instancePath.append(to_string(1)).append(".in");
+    // string instancePath = "./ins/Christofields/CMT";
+    string instancePath = "./ins/Golden/Golden";
+    instancePath.append(to_string(4)).append(".in");
     CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
     cout << "\nINSTANCE: " << instance.getName() << "\n";
 
