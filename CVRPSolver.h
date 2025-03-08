@@ -274,7 +274,7 @@ private:
         shuffle(solution.begin(), solution.end(), gen);
         solution.emplace(solution.begin(), instance.getDepotIndex());
         // printRoute(solution);
-        int fitness = splitProcedure(instance, solution, P);
+        double fitness = splitProcedure(instance, solution, P);
         // cout << "Fitness: " << fitness << endl;
         return Chromosome(solution, P, fitness);
     }
@@ -318,6 +318,15 @@ public:
     void printRoute(const vector<int> route)
     {
         for (int node : route)
+        {
+            cout << node << " ";
+        }
+        cout << endl;
+    }
+
+    void printRoute(const vector<double> route)
+    {
+        for (double node : route)
         {
             cout << node << " ";
         }
@@ -820,7 +829,6 @@ public:
         vector<int> demands = instance.getDemands();
         vector<vector<double>> distanceMatrix = instance.getDistanceMatrix();
         V[route[0]] = 0;
-        
         for (int i = 1; i < n; i++)
         {
             int load = 0;
@@ -851,6 +859,7 @@ public:
 
             } while (j < route.size());
         }
+
         return V[route[n -1]];
     }
 
@@ -893,8 +902,8 @@ public:
                     if(bestChild.fitness < population.back().fitness) break;
                     vector<int> P(instance.getDimension());
                     pair<vector<int>, vector<int>> children = crossoverOX(newPopulation[k].nodes, parent.nodes, gen);
-                    int fit1 = splitProcedure(instance, children.first, P);
-                    int fit2 = splitProcedure(instance, children.second, P);
+                    double fit1 = splitProcedure(instance, children.first, P);
+                    double fit2 = splitProcedure(instance, children.second, P);
                     vector<int> child = (fit1 <= fit2) ? children.first : children.second;
                     int fit = (fit1 < fit2) ? fit1 : fit2;
                     Chromosome childChromosome = Chromosome(child, P, fit);
@@ -948,16 +957,14 @@ public:
             vector<int> childSolution = (getRandomInt(0,1, gen) == 0) ? children.first : children.second;
 
             vector<int> P(instance.getDimension());
-            int fitness = splitProcedure(instance, childSolution, P);
+            double fitness = splitProcedure(instance, childSolution, P);
             Chromosome childChromosome = Chromosome(childSolution, P, fitness);
-            
             k = getRandomInt((populationSize - 1) / 2, populationSize - 1, gen);
             double random = getRandomDouble(0.0, 1.0, gen);
             Chromosome aux = population[k];
             if (random < pm)
             {
                 Chromosome mutatedChromosome = localSearch(instance, childChromosome);
-                
                 population[k] = mutatedChromosome;
                 
                 if (isSpaced(population, k))
