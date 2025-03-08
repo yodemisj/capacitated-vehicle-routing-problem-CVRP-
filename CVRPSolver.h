@@ -905,7 +905,7 @@ public:
                     double fit1 = splitProcedure(instance, children.first, P);
                     double fit2 = splitProcedure(instance, children.second, P);
                     vector<int> child = (fit1 <= fit2) ? children.first : children.second;
-                    int fit = (fit1 < fit2) ? fit1 : fit2;
+                    double fit = (fit1 < fit2) ? fit1 : fit2;
                     Chromosome childChromosome = Chromosome(child, P, fit);
                     if (isSpaced(population, childChromosome) && childChromosome.fitness < bestChild.fitness) {
                         bestChild = childChromosome;
