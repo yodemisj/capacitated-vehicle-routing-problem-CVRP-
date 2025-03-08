@@ -40,7 +40,19 @@ typedef struct CVRPSHeuristicResult
     double TS_3OPT_BI_ExecTime;
     double TS_3OPT_FI;
     double TS_3OPT_BI;
-}CVRPSHeuristicResult;
+} CVRPSHeuristicResult;
+
+typedef struct CVRP_GA_Result
+{
+    string instanceName;
+    int numClients;
+    int vehicleCapacity;
+    double distance;
+    double serviceTime;
+
+    double GA_ExecTime;
+    double GA;
+} CVRP_GA_Result;
 
 class FileUtils
 {
@@ -143,6 +155,27 @@ public:
         string result = aux.str();
         replace(result.begin(), result.end(), '.', ',');
         return result;
+    }
+
+    static void saveCVRP_GA_ResultsToCSV(const string &filePath, const vector<CVRP_GA_Result> &results)
+    {
+        ofstream file(filePath);
+
+        file << "Nome da Instância;Número de Clientes;Capacidade;Distância;Tempo de Serviço;GA;GA t(s);\n";
+
+        for (const auto &result : results)
+        {
+            file << result.instanceName << ";"
+                 << result.numClients << ";"
+                 << result.vehicleCapacity << ";"
+                 << formatNumber(result.distance, 2) << ";"
+                 << formatNumber(result.serviceTime, 2) << ";"
+                 << formatNumber(result.GA, 2) << ";"
+                 << formatNumber(result.GA_ExecTime, 7) << ";"
+                 << "\n";
+        }
+
+        file.close();
     }
 
     static void saveCVRPSHeuristicResultsToCSV(const string &filePath, const vector<CVRPSHeuristicResult> &results)

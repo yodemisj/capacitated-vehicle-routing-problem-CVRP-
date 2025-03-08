@@ -24,8 +24,9 @@ typedef struct Chromosome
         this->fitness = fitness;
         this->P = p;
     };
-    
-    bool operator<(const Chromosome& other) const {
+
+    bool operator<(const Chromosome &other) const
+    {
         return fitness < other.fitness;
     }
 } Chromosome;
@@ -61,25 +62,28 @@ private:
         }
     }
 
-    void calculateSavings(const CVRPInstance& instance) {
+    void calculateSavings(const CVRPInstance &instance)
+    {
         int dimension = instance.getDimension();
         int depotIndex = instance.getDepotIndex();
         vector<vector<double>> distanceMatrix = instance.getDistanceMatrix();
 
-        for (int i = 1; i <= dimension; i++) {
-            for (int j = i + 1; j <= dimension; j++) {
-                if (i != depotIndex && j != depotIndex) {
-                    double saving = distanceMatrix[depotIndex][i] + 
-                                    distanceMatrix[depotIndex][j] - 
+        for (int i = 1; i <= dimension; i++)
+        {
+            for (int j = i + 1; j <= dimension; j++)
+            {
+                if (i != depotIndex && j != depotIndex)
+                {
+                    double saving = distanceMatrix[depotIndex][i] +
+                                    distanceMatrix[depotIndex][j] -
                                     distanceMatrix[i][j];
                     savings.emplace_back(i, j, saving);
                 }
             }
         }
 
-        sort(savings.begin(), savings.end(), [](const auto& a, const auto& b) {
-            return get<2>(a) > get<2>(b);
-        });
+        sort(savings.begin(), savings.end(), [](const auto &a, const auto &b)
+             { return get<2>(a) > get<2>(b); });
     }
 
     int calculateRouteDemand(vector<int> route, vector<int> demands)
@@ -238,39 +242,50 @@ private:
         return rcl;
     }
 
-    void clear() {
+    void clear()
+    {
         routes.clear();
         savings.clear();
     }
 
-    bool isSpaced(vector<Chromosome> population, size_t idx, double delta = 0.5) {
-        for (size_t i = 0; i < population.size(); i++) {
-            if(i == idx) continue;
-            else if (abs(population[i].fitness - population[idx].fitness) < delta) {
+    bool isSpaced(vector<Chromosome> population, size_t idx, double delta = 0.5)
+    {
+        for (size_t i = 0; i < population.size(); i++)
+        {
+            if (i == idx)
+                continue;
+            else if (abs(population[i].fitness - population[idx].fitness) < delta)
+            {
                 return false;
             }
         }
         return true;
     }
 
-    bool isSpaced(vector<Chromosome> population, Chromosome newChromosome, double delta = 0.5) {
-        for (size_t i = 0; i < population.size(); i++) {
-            if (abs(population[i].fitness - newChromosome.fitness) < delta) {
+    bool isSpaced(vector<Chromosome> population, Chromosome newChromosome, double delta = 0.5)
+    {
+        for (size_t i = 0; i < population.size(); i++)
+        {
+            if (abs(population[i].fitness - newChromosome.fitness) < delta)
+            {
                 return false;
             }
         }
         return true;
     }
 
-    Chromosome generateRandomSolution(CVRPInstance instance, mt19937 &gen) {
+    Chromosome generateRandomSolution(CVRPInstance instance, mt19937 &gen)
+    {
         vector<int> solution;
         vector<int> P(instance.getDimension());
 
-        for (int i = 1; i <= instance.getDimension(); ++i) {
-            if(i == instance.getDepotIndex()) continue;
+        for (int i = 1; i <= instance.getDimension(); ++i)
+        {
+            if (i == instance.getDepotIndex())
+                continue;
             solution.push_back(i);
         }
-        
+
         shuffle(solution.begin(), solution.end(), gen);
         solution.emplace(solution.begin(), instance.getDepotIndex());
         // printRoute(solution);
@@ -279,41 +294,51 @@ private:
         return Chromosome(solution, P, fitness);
     }
 
-    void sortSolutions(vector<Chromosome> population) {
+    void sortSolutions(vector<Chromosome> population)
+    {
         sort(population.begin(), population.end());
     }
 
-    Chromosome selectParent(const vector<Chromosome> &population) {
+    Chromosome selectParent(const vector<Chromosome> &population)
+    {
         int populationSize = population.size();
 
         int idx1 = getRandomInt(0, populationSize - 1, gen);
         int idx2;
-        do {
+        do
+        {
             idx2 = getRandomInt(0, populationSize - 1, gen);
         } while (idx1 == idx2);
 
-        if (population[idx1].fitness < population[idx2].fitness) {
+        if (population[idx1].fitness < population[idx2].fitness)
+        {
             return population[idx1];
-        } else {
+        }
+        else
+        {
             return population[idx2];
         }
     }
 
-    double getRandomDouble(double min, double max, mt19937 &gen) {
-        if (min > max) {
+    double getRandomDouble(double min, double max, mt19937 &gen)
+    {
+        if (min > max)
+        {
             swap(min, max);
         }
 
-        // mt19937 rng(static_cast<unsigned int>(time(nullptr))); 
-        uniform_real_distribution<double> dist(min, max); 
-        return dist(gen); 
+        // mt19937 rng(static_cast<unsigned int>(time(nullptr)));
+        uniform_real_distribution<double> dist(min, max);
+        return dist(gen);
     }
 
-    int getRandomInt(int min, int max, mt19937 &gen) {
-        // static thread_local mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count()); 
+    int getRandomInt(int min, int max, mt19937 &gen)
+    {
+        // static thread_local mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
         std::uniform_int_distribution<int> dist(min, max);
         return dist(gen);
     }
+
 public:
     void printRoute(const vector<int> route)
     {
@@ -554,11 +579,13 @@ public:
         return Route(removeDepotFromRoute(bestNeighbor, instance.getDepotIndex()), bestNeighborCost);
     }
 
-    pair<vector<int>, vector<int>> crossoverOX(const vector<int> p1, const vector<int> p2, mt19937 &gen) {
+    pair<vector<int>, vector<int>> crossoverOX(const vector<int> p1, const vector<int> p2, mt19937 &gen)
+    {
         int p1Size = p1.size();
         int p2Size = p2.size();
 
-        if (p1Size != p2Size) {
+        if (p1Size != p2Size)
+        {
             return {};
         }
 
@@ -567,7 +594,7 @@ public:
         // random_device rd;
         // mt19937 gen(rd());
         uniform_int_distribution<> dis(1, p1Size - 2);
-        
+
         int i = dis(gen);
         int j = dis(gen);
 
@@ -575,72 +602,85 @@ public:
         {
             j = dis(gen);
         }
-        
-        if (j < i) {
+
+        if (j < i)
+        {
             swap(i, j);
         }
 
-        for(int k = i; k <= j; k++) {
+        for (int k = i; k <= j; k++)
+        {
             c1[k] = p1[k];
             c2[k] = p2[k];
         }
-        
-        int indexC1 = (j + 1) % p1Size; 
-        int indexC2 = (j + 1) % p1Size; 
 
-        for (int k = j + 1; k < p1Size + j + 1; k++) {
+        int indexC1 = (j + 1) % p1Size;
+        int indexC2 = (j + 1) % p1Size;
+
+        for (int k = j + 1; k < p1Size + j + 1; k++)
+        {
             int index = k % p1Size;
 
             auto itP1 = find(c2.begin(), c2.end(), p1[index]);
             auto itP2 = find(c1.begin(), c1.end(), p2[index]);
 
-            if(itP1 == c2.end()) {
+            if (itP1 == c2.end())
+            {
                 c2[indexC2] = p1[index];
                 indexC2++;
                 indexC2 %= p1Size;
             }
 
-            if(itP2 == c1.end()) {
+            if (itP2 == c1.end())
+            {
                 c1[indexC1] = p2[index];
                 indexC1++;
                 indexC1 %= p1Size;
             }
         }
-        return make_pair(c1,c2);
+        return make_pair(c1, c2);
     }
 
-    void shiftSolution(vector<Chromosome> &population, size_t k) {
+    void shiftSolution(vector<Chromosome> &population, size_t k)
+    {
         size_t n = population.size();
-        
-        while (k > 0 && population[k].fitness < population[k - 1].fitness) {
+
+        while (k > 0 && population[k].fitness < population[k - 1].fitness)
+        {
             swap(population[k], population[k - 1]);
-            k--; 
+            k--;
         }
-    
-        while (k < n - 1 && population[k].fitness > population[k + 1].fitness) {
+
+        while (k < n - 1 && population[k].fitness > population[k + 1].fitness)
+        {
             swap(population[k], population[k + 1]);
             k++;
         }
     }
 
-    Chromosome generateBestNeighborhood_2Opt_GA(Chromosome route, CVRPInstance instance) {
+    Chromosome generateBestNeighborhood_2Opt_GA(Chromosome route, CVRPInstance instance)
+    {
         double newNeighborCost = 0;
         vector<int> P(route.nodes.size());
 
-        if (route.nodes.size() <= 3) {
+        if (route.nodes.size() <= 3)
+        {
             return route;
         }
 
         Chromosome bestNeighbor = route;
 
-        for (size_t i = 0; i < route.nodes.size() - 2; i++) {
-            for (size_t j = i + 2; j < route.nodes.size() - 1; j++) {
+        for (size_t i = 0; i < route.nodes.size() - 2; i++)
+        {
+            for (size_t j = i + 2; j < route.nodes.size() - 1; j++)
+            {
                 vector<int> newNeighborRoute = swap2Opt(route.nodes, i, j);
                 P.clear();
                 newNeighborCost = splitProcedure(instance, route.nodes, P);
                 Chromosome newNeighbor = Chromosome(newNeighborRoute, P, newNeighborCost);
 
-                if (newNeighborCost < bestNeighbor.fitness) {
+                if (newNeighborCost < bestNeighbor.fitness)
+                {
                     bestNeighbor = newNeighbor;
                     // if(bestNeighborCost < routeCost) return bestNeighbor; // Primeira melhora
                 }
@@ -650,10 +690,12 @@ public:
         return bestNeighbor;
     }
 
-    Chromosome localSearch(CVRPInstance instance, Chromosome route) {
+    Chromosome localSearch(CVRPInstance instance, Chromosome route)
+    {
         Chromosome newRoute = generateBestNeighborhood_2Opt_GA(route, instance);
         return newRoute;
     }
+
 public:
     CVRPSolver() : routes() {}
 
@@ -815,32 +857,35 @@ public:
         int capacity = instance.getVehicleCapacity();
         double distance = (instance.getDistance() == -1) ? numeric_limits<double>::infinity() : instance.getDistance();
         int n = instance.getDimension();
-        
+
         vector<double> V(n + 1, numeric_limits<double>::infinity());
         vector<int> demands = instance.getDemands();
         vector<vector<double>> distanceMatrix = instance.getDistanceMatrix();
         V[route[0]] = 0;
-        
+
         for (int i = 1; i < n; i++)
         {
             int load = 0;
             double cost = 0;
             int j = i;
-            
+
             do
             {
                 load += demands[route[j]];
-                if (i == j) {
+                if (i == j)
+                {
                     cost += distanceMatrix[route[0]][route[j]] + distanceMatrix[route[j]][route[0]];
                 }
-                else {
-                    cost = cost - distanceMatrix[route[j - 1]][route[0]] + distanceMatrix[route[j-1]][route[j]] + distanceMatrix[route[j]][route[0]];
+                else
+                {
+                    cost = cost - distanceMatrix[route[j - 1]][route[0]] + distanceMatrix[route[j - 1]][route[j]] + distanceMatrix[route[j]][route[0]];
                 }
                 if (load <= capacity && cost <= distance)
                 {
-                    if (V[route[i - 1]] + cost < V[route[j]]) { // Relaxa
+                    if (V[route[i - 1]] + cost < V[route[j]])
+                    { // Relaxa
                         V[route[j]] = V[route[i - 1]] + cost;
-                        // P[route[j]] = route[i - 1]; // to do: verificar isso aqui 
+                        P[route[j]] = route[i - 1]; // to do: verificar isso aqui
                     }
                     j++;
                 }
@@ -851,7 +896,7 @@ public:
 
             } while (j < route.size());
         }
-        return V[route[n -1]];
+        return V[route[n - 1]];
     }
 
     Chromosome parseToChromosome(CVRPInstance instance, vector<vector<int>> routes)
@@ -867,30 +912,37 @@ public:
         return Chromosome(result, P, fitness);
     }
 
-    void partialReplacement(vector<Chromosome>& population, CVRPInstance instance, int rho = 8, int maxRestartAttempts = 5) {
+    void partialReplacement(vector<Chromosome> &population, CVRPInstance instance, int rho = 8, int maxRestartAttempts = 5)
+    {
         int replacements = 0;
         int attempts = 0;
         int tryCount = 0;
         vector<Chromosome> newPopulation;
         newPopulation.reserve(8);
 
-        while (replacements < rho && attempts < maxRestartAttempts) {
+        while (replacements < rho && attempts < maxRestartAttempts)
+        {
             attempts++;
             newPopulation.clear();
             int tryCount = 0;
-            while(newPopulation.size() < 8 && tryCount < TRY_NUMBER) {
+            while (newPopulation.size() < 8 && tryCount < TRY_NUMBER)
+            {
                 Chromosome newChrom = generateRandomSolution(instance, gen);
-                
-                if(isSpaced(population, newChrom) && isSpaced(newPopulation, newChrom)) {
+
+                if (isSpaced(population, newChrom) && isSpaced(newPopulation, newChrom))
+                {
                     newPopulation.push_back(newChrom);
                     shiftSolution(newPopulation, newPopulation.size() - 1);
                 }
             }
-            for(int k = 0; k < newPopulation.size(); k++) {
+            for (int k = 0; k < newPopulation.size(); k++)
+            {
                 Chromosome bestChild = newPopulation[k];
-                
-                for (const Chromosome& parent : population) {
-                    if(bestChild.fitness < population.back().fitness) break;
+
+                for (const Chromosome &parent : population)
+                {
+                    if (bestChild.fitness < population.back().fitness)
+                        break;
                     vector<int> P(instance.getDimension());
                     pair<vector<int>, vector<int>> children = crossoverOX(newPopulation[k].nodes, parent.nodes, gen);
                     int fit1 = splitProcedure(instance, children.first, P);
@@ -898,24 +950,28 @@ public:
                     vector<int> child = (fit1 <= fit2) ? children.first : children.second;
                     int fit = (fit1 < fit2) ? fit1 : fit2;
                     Chromosome childChromosome = Chromosome(child, P, fit);
-                    if (isSpaced(population, childChromosome) && childChromosome.fitness < bestChild.fitness) {
+                    if (isSpaced(population, childChromosome) && childChromosome.fitness < bestChild.fitness)
+                    {
                         bestChild = childChromosome;
                     }
                 }
-                
-                if (bestChild.fitness < population.back().fitness) {
+
+                if (bestChild.fitness < population.back().fitness)
+                {
                     population.back() = bestChild;
                     replacements++;
                     shiftSolution(population, population.size() - 1);
                 }
             }
-        }   
+        }
     }
 
-    void genCWSolutions(CVRPInstance instance, vector<Chromosome> &population, int n, double alpha) {
+    void genCWSolutions(CVRPInstance instance, vector<Chromosome> &population, int n, double alpha)
+    {
         int k = 0;
         int tryCount = 0;
-        while(k < n && tryCount <= TRY_NUMBER) {
+        while (k < n && tryCount <= TRY_NUMBER)
+        {
             tryCount = 0;
             while (tryCount <= TRY_NUMBER)
             {
@@ -925,17 +981,20 @@ public:
                 cout << solution_1.fitness << endl;
                 if (tryCount == 1)
                     population.push_back(solution_1);
-                else 
+                else
                     population.back() = solution_1;
-                if(isSpaced(population, k)) break;
+                if (isSpaced(population, k))
+                    break;
             }
             shiftSolution(population, k);
             k++;
         }
-        if (tryCount > TRY_NUMBER) population.pop_back();
+        if (tryCount > TRY_NUMBER)
+            population.pop_back();
     }
 
-    void runPhase(CVRPInstance instance, vector<Chromosome> &population, int maxIterations, int maxNoImprovementIterations, int k, double pm) {
+    void runPhase(CVRPInstance instance, vector<Chromosome> &population, int maxIterations, int maxNoImprovementIterations, int k, double pm)
+    {
         int iterations = 0;
         int noImprovementCount = 0;
         int populationSize = population.size();
@@ -945,30 +1004,29 @@ public:
             Chromosome P2 = selectParent(population);
 
             pair<vector<int>, vector<int>> children = crossoverOX(P1.nodes, P2.nodes, gen);
-            vector<int> childSolution = (getRandomInt(0,1, gen) == 0) ? children.first : children.second;
+            vector<int> childSolution = (getRandomInt(0, 1, gen) == 0) ? children.first : children.second;
 
             vector<int> P(instance.getDimension());
             int fitness = splitProcedure(instance, childSolution, P);
             Chromosome childChromosome = Chromosome(childSolution, P, fitness);
-            
+
             k = getRandomInt((populationSize - 1) / 2, populationSize - 1, gen);
             double random = getRandomDouble(0.0, 1.0, gen);
             Chromosome aux = population[k];
             if (random < pm)
             {
                 Chromosome mutatedChromosome = localSearch(instance, childChromosome);
-                
+
                 population[k] = mutatedChromosome;
-                
+
                 if (isSpaced(population, k))
                 {
                     childChromosome = mutatedChromosome;
                 }
-                
             }
 
             population[k] = childChromosome;
-                
+
             if (isSpaced(population, k))
             {
                 iterations++;
@@ -990,7 +1048,7 @@ public:
         }
     }
 
-    void runGeneticAlgorithm(CVRPInstance instance, double alpha)
+    double runGeneticAlgorithm(CVRPInstance instance, double alpha)
     {
         int k, tryCount = 0;
         vector<Chromosome> population;
@@ -1002,8 +1060,8 @@ public:
 
         genCWSolutions(instance, population, 3, alpha);
         cout << "P[0]: " << population[0].fitness << endl;
-        // cout << "P[1]: " << population[1].fitness << endl;
-        // cout << "P[2]: " << population[2].fitness << endl;
+        cout << "P[1]: " << population[1].fitness << endl;
+        cout << "P[2]: " << population[2].fitness << endl;
 
         k = population.size() - 1;
 
@@ -1018,41 +1076,41 @@ public:
                 Chromosome randomSolution = generateRandomSolution(instance, gen);
                 if (tryCount == 1)
                     population.push_back(randomSolution);
-                else 
+                else
                     population.back() = randomSolution;
-                if(isSpaced(population, k)) break;
+                if (isSpaced(population, k))
+                    break;
             }
             shiftSolution(population, k);
         }
-        if (tryCount > TRY_NUMBER) population.pop_back();
+        if (tryCount > TRY_NUMBER)
+            population.pop_back();
 
         int maxPhases;
         int pm = 0.05;
-        bool isCMT = instance.getName().find("CMT")!= string::npos;
-        if(isCMT) {
+        bool isCMT = instance.getName().find("CMT") != string::npos;
+        if (isCMT)
+        {
             runPhase(instance, population, maxIterations, maxNoImprovementIterations, k, pm);
             maxPhases = 10;
             pm = 0.1;
             partialReplacement(population, instance);
-        } else {
+        }
+        else
+        {
             maxPhases = 8;
             pm = 0.2;
         }
-        
+
         maxIterations = 2000;
         maxNoImprovementIterations = 2000;
-        
-        for (int phase = 0; phase < maxPhases; phase++) {
+
+        for (int phase = 0; phase < maxPhases; phase++)
+        {
             runPhase(instance, population, maxIterations, maxNoImprovementIterations, k, pm);
             partialReplacement(population, instance);
         }
-        
-        
-        cout <<"Melhor Valor: " << population[0].fitness << endl;
-        cout <<"Segundo Melhor Valor: " << population[1].fitness << endl;
 
-        for(Chromosome c: population) {
-            cout << "fit: " << c.fitness << endl;
-        }
+        return population[0].fitness;
     }
 };

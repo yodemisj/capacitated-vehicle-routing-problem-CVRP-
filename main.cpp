@@ -35,7 +35,7 @@ void solveInstanceWithMetrics(const CVRPInstance &instance, double alpha, vector
     end = chrono::high_resolution_clock::now();
     chrono::duration<double> TS_2OPT_BI_ExecTime = end - start + RCL_ExecTime;
     cout << ">> TS_2OPT_BI: " << TS_2OPT_BI << endl;
-    
+
     cvrpSolver.setRoutes(originalRoutes);
 
     // 3OPT FIRST IMPROVEMENT
@@ -70,41 +70,53 @@ void solveInstanceWithMetrics(const CVRPInstance &instance, double alpha, vector
                        TS_3OPT_BI});
 }
 
+void solveInstanceWithGA(const CVRPInstance &instance, double alpha, vector<CVRP_GA_Result> &results)
+{
+    CVRPSolver cvrpSolver = CVRPSolver();
+
+    auto start = chrono::high_resolution_clock::now();
+    double GA = cvrpSolver.runGeneticAlgorithm(instance, alpha);
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> GA_ExecTime = end - start;
+    cout << ">> GA: " << GA << endl;
+
+    // Salvar resultados no vetor
+    results.push_back({
+        instance.getName(),
+        instance.getDimension() - 1,
+        instance.getVehicleCapacity(),
+        instance.getDistance(),
+        instance.getServiceTime(),
+        GA_ExecTime.count(),
+        GA,
+    });
+}
+
 int main()
 {
-    // vector<CVRPSHeuristicResult> results;
+    vector<CVRP_GA_Result> results;
 
-    CVRPSolver cvrpSolver = CVRPSolver();
-    // string instancePath = "./ins/Christofields/CMT";
-    string instancePath = "./ins/Golden/Golden";
-    instancePath.append(to_string(4)).append(".in");
-    CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
-    cout << "\nINSTANCE: " << instance.getName() << "\n";
+    for (int i = 1; i <= 14; i++)
+    {
+        string instancePath = "./ins/Christofields/CMT";
+        instancePath.append(to_string(i)).append(".in");
+        CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
+        cout << "\nINSTANCE: " << instance.getName() << "\n";
 
-    cvrpSolver.runGeneticAlgorithm(instance, 0.02);
+        solveInstanceWithGA(instance, 0.02, results);
+    }
 
-    // for (int i = 1; i <= 14; i++)
-    // {
-    //     string instancePath = "./ins/Christofields/CMT";
-    //     instancePath.append(to_string(i)).append(".in");
-    //     CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
-    //     cout << "\nINSTANCE: " << instance.getName() << "\n";
+    for (int i = 1; i <= 20; i++)
+    {
+        string instancePath = "./ins/Golden/Golden";
+        instancePath.append(to_string(i)).append(".in");
+        CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
+        cout << "\nINSTANCE: " << instance.getName() << "\n";
 
-    //     solveInstanceWithMetrics(instance, 0.02, results);
-    // }
+        solveInstanceWithGA(instance, 0.02, results);
+    }
 
-    // for (int i = 1; i <= 20; i++)
-    // {
-    //     string instancePath = "./ins/Golden/Golden";
-    //     instancePath.append(to_string(i)).append(".in");
-    //     CVRPInstance instance = FileUtils::readInstanceFile(instancePath);
-    //     cout << "\nINSTANCE: " << instance.getName() << "\n";
-
-    //     solveInstanceWithMetrics(instance, 0.02, results);
-    // }
-
-    // Salvar resultados em um arquivo CSV
-    // FileUtils::saveCVRPSHeuristicResultsToCSV("cvrp_s_heuristic_results.csv", results);
+    FileUtils::saveCVRP_GA_ResultsToCSV("cvrp_GA_results.csv", results);
 
     return 0;
 }
