@@ -12,6 +12,19 @@ using namespace std;
 
 static mt19937 gen(chrono::steady_clock::now().time_since_epoch().count() + random_device{}());
 
+typedef struct Solution {
+    vector<vector<int>> routes;
+    double fitness;
+
+    Solution() : fitness(0.0) { }
+
+    Solution(const vector<vector<int>> &routes) : routes(routes) { }
+
+    Solution(const vector<vector<int>> &routes, double fitness)
+        : routes(routes), fitness(fitness) { }
+
+} Solution;
+
 typedef struct Chromosome
 {
     vector<int> nodes;
@@ -650,10 +663,287 @@ public:
         return bestNeighbor;
     }
 
-    Chromosome localSearch(CVRPInstance instance, Chromosome route) {
-        Chromosome newRoute = generateBestNeighborhood_2Opt_GA(route, instance);
-        return newRoute;
+    // Chromosome localSearch(CVRPInstance instance, Chromosome route) {
+    //     Chromosome newRoute = generateBestNeighborhood_2Opt_GA(route, instance);
+    //     return newRoute;
+    // }
+
+    // M1. Se u é um nó cliente, remova u e insira-o após v.
+    Solution applyM1(const Solution &sol, int r1, int pos_u, int r2, int pos_v, const CVRPInstance &instance) {
+        Solution newSol = sol;
+        int u = newSol.routes[r1][pos_u];
+        // Remove u de sua rota:
+        newSol.routes[r1].erase(newSol.routes[r1].begin() + pos_u);
+        // Se a remoção ocorre na mesma rota onde vamos inserir, ajuste o índice se necessário:
+        if (r1 == r2 && pos_v >= pos_u) {
+            pos_v--;
+        }
+        // Insira u após v (ou seja, na posição pos_v+1) na rota r2:
+        newSol.routes[r2].insert(newSol.routes[r2].begin() + pos_v + 1, u);
+        return newSol;
     }
+
+    // M2. Se u e x são clientes, remova-os e insira (u, x) após v.
+    Solution applyM2(const Solution &sol, int r1, int pos_u, int r2, int pos_v, const CVRPInstance &instance) {
+        Solution newSol = sol;
+        int u = newSol.routes[r1][pos_u];
+        int x = newSol.routes[r1][pos_u + 1];
+        // Remove os dois elementos de r1:
+        newSol.routes[r1].erase(newSol.routes[r1].begin() + pos_u, newSol.routes[r1].begin() + pos_u + 2);
+        if (r1 == r2 && pos_v >= pos_u) {
+            pos_v -= 2;
+        }
+        // Insira a sequência (u, x) após v na rota r2:
+        newSol.routes[r2].insert(newSol.routes[r2].begin() + pos_v + 1, u);
+        newSol.routes[r2].insert(newSol.routes[r2].begin() + pos_v + 2, x);
+        return newSol;
+    }
+
+    // M3. Se u e x são clientes, remova-os e insira (x, u) após v.
+    Solution applyM3(const Solution &sol, int r1, int pos_u, int r2, int pos_v, const CVRPInstance &instance) {
+        Solution newSol = sol;
+        int u = newSol.routes[r1][pos_u];
+        int x = newSol.routes[r1][pos_u + 1];
+        newSol.routes[r1].erase(newSol.routes[r1].begin() + pos_u, newSol.routes[r1].begin() + pos_u + 2);
+        if (r1 == r2 && pos_v >= pos_u) {
+            pos_v -= 2;
+        }
+        // Insira (x, u) após v:
+        newSol.routes[r2].insert(newSol.routes[r2].begin() + pos_v + 1, x);
+        newSol.routes[r2].insert(newSol.routes[r2].begin() + pos_v + 2, u);
+        return newSol;
+    }
+
+    // M4. Se u e v são clientes, troque u e v.
+    Solution applyM4(const Solution &sol, int r1, int pos_u, int r2, int pos_v, const CVRPInstance &instance) {
+        Solution newSol = sol;
+        swap(newSol.routes[r1][pos_u], newSol.routes[r2][pos_v]);
+        return newSol;
+    }
+
+    // M5. Se (u, x) e v são clientes, troque o par (u, x) com v.
+    Solution applyM5(const Solution &sol, int r1, int pos_u, int r2, int pos_v, const CVRPInstance &instance) {
+        Solution newSol = sol;
+        // Armazena o segmento (u, x) da rota r1.
+        std::vector<int> seg;
+        seg.push_back(newSol.routes[r1][pos_u]);
+        seg.push_back(newSol.routes[r1][pos_u + 1]);
+        // Remove (u, x) de r1.
+        newSol.routes[r1].erase(newSol.routes[r1].begin() + pos_u, newSol.routes[r1].begin() + pos_u + 2);
+        // Insere v na posição onde estava (u, x) em r1.
+        newSol.routes[r1].insert(newSol.routes[r1].begin() + pos_u, newSol.routes[r2][pos_v]);
+        // Remove v de r2.
+        newSol.routes[r2].erase(newSol.routes[r2].begin() + pos_v);
+        // Insere o segmento (u, x) em r2, na posição onde estava v.
+        newSol.routes[r2].insert(newSol.routes[r2].begin() + pos_v, seg.begin(), seg.end());
+        return newSol;
+    }
+
+    // M6. Se (u, x) e (v, y) são clientes, troque os pares (u, x) e (v, y).
+    Solution applyM6(const Solution &sol, int r1, int pos_u, int r2, int pos_v, const CVRPInstance &instance) {
+        Solution newSol = sol;
+        // Obter os segmentos (u,x) e (v,y):
+        std::vector<int> seg1 = { newSol.routes[r1][pos_u], newSol.routes[r1][pos_u + 1] };
+        std::vector<int> seg2 = { newSol.routes[r2][pos_v], newSol.routes[r2][pos_v + 1] };
+        // Remover os segmentos:
+        newSol.routes[r1].erase(newSol.routes[r1].begin() + pos_u, newSol.routes[r1].begin() + pos_u + 2);
+        newSol.routes[r2].erase(newSol.routes[r2].begin() + pos_v, newSol.routes[r2].begin() + pos_v + 2);
+        // Inserir seg2 em r1:
+        newSol.routes[r1].insert(newSol.routes[r1].begin() + pos_u, seg2.begin(), seg2.end());
+        // Inserir seg1 em r2:
+        newSol.routes[r2].insert(newSol.routes[r2].begin() + pos_v, seg1.begin(), seg1.end());
+        return newSol;
+    }
+
+    // M7. Se T(u) = T(v), substitua (u, x) e (v, y) por (u, v) e (x, y) na mesma rota.
+    Solution applyM7(const Solution &sol, int r, int pos_u, int pos_v, const CVRPInstance &instance) {
+        Solution newSol = sol;
+        // Na mesma rota r:
+        int u = newSol.routes[r][pos_u];
+        int x = newSol.routes[r][pos_u + 1];
+        int v = newSol.routes[r][pos_v];
+        int y = newSol.routes[r][pos_v + 1];
+        // Remove os dois segmentos (u, x) e (v, y):
+        newSol.routes[r].erase(newSol.routes[r].begin() + pos_v, newSol.routes[r].begin() + pos_v + 2);
+        newSol.routes[r].erase(newSol.routes[r].begin() + pos_u, newSol.routes[r].begin() + pos_u + 2);
+        // Insere (u, v) na posição pos_u:
+        newSol.routes[r].insert(newSol.routes[r].begin() + pos_u, {u, v});
+        // Insere (x, y) na posição pos_v (ajustado):
+        newSol.routes[r].insert(newSol.routes[r].begin() + pos_v - 2, {x, y});
+        return newSol;
+    }
+
+    // M8. Se T(u) ≠ T(v), substitua (u, x) e (v, y) por (u, v) e (x, y).
+    Solution applyM8(const Solution &sol, int r1, int pos_u, int r2, int pos_v, const CVRPInstance &instance) {
+        Solution newSol = sol;
+        int u = newSol.routes[r1][pos_u];
+        int x = newSol.routes[r1][pos_u + 1];
+        int v = newSol.routes[r2][pos_v];
+        int y = newSol.routes[r2][pos_v + 1];
+        newSol.routes[r1].erase(newSol.routes[r1].begin() + pos_u, newSol.routes[r1].begin() + pos_u + 2);
+        newSol.routes[r2].erase(newSol.routes[r2].begin() + pos_v, newSol.routes[r2].begin() + pos_v + 2);
+        newSol.routes[r1].insert(newSol.routes[r1].begin() + pos_u, {u, v});
+        newSol.routes[r2].insert(newSol.routes[r2].begin() + pos_v, {x, y});
+        return newSol;
+    }
+
+    // M9. Se T(u) ≠ T(v), substitua (u, x) e (v, y) por (u, y) e (x, v).
+    Solution applyM9(const Solution &sol, int r1, int pos_u, int r2, int pos_v, const CVRPInstance &instance) {
+        Solution newSol = sol;
+        int u = newSol.routes[r1][pos_u];
+        int x = newSol.routes[r1][pos_u + 1];
+        int v = newSol.routes[r2][pos_v];
+        int y = newSol.routes[r2][pos_v + 1];
+        newSol.routes[r1].erase(newSol.routes[r1].begin() + pos_u, newSol.routes[r1].begin() + pos_u + 2);
+        newSol.routes[r2].erase(newSol.routes[r2].begin() + pos_v, newSol.routes[r2].begin() + pos_v + 2);
+        newSol.routes[r1].insert(newSol.routes[r1].begin() + pos_u, {u, y});
+        newSol.routes[r2].insert(newSol.routes[r2].begin() + pos_v, {x, v});
+        return newSol;
+    }
+
+    Chromosome localSearch(Chromosome solution, CVRPInstance instance) {
+
+        Solution sol = extractSolution(instance, solution.P, solution.nodes);
+        
+        bool improvement = true;
+        while (improvement) {
+            improvement = false;
+            double bestDelta = 0.0; 
+            Chromosome bestSolution = solution;
+            
+            // Loop sobre todos os pares de nós (u, v)
+            for (size_t r1 = 0; r1 < sol.routes.size(); ++r1) {
+                vector<int>& route1 = sol.routes[r1];
+                for (size_t pos_u = 0; pos_u < route1.size(); ++pos_u) {
+                    int u = route1[pos_u];
+                    // x: sucessor de u, se existir
+                    int x = (pos_u < route1.size() - 1) ? route1[pos_u + 1] : -1;
+                    
+                    for (size_t r2 = 0; r2 < sol.routes.size(); ++r2) {
+                        vector<int>& route2 = sol.routes[r2];
+                        for (size_t pos_v = 0; pos_v < route2.size(); ++pos_v) {
+                            // Garantir que u e v são distintos
+                            if (r1 == r2 && pos_v == pos_u) continue;
+                            int v = route2[pos_v];
+                            // y: sucessor de v, se existir
+                            int y = (pos_v < route2.size() - 1) ? route2[pos_v + 1] : -1;
+                            
+                            // Para cada movimento M1 a M9, testar se é aplicável e calcular ganho
+                            
+                            // M1: Se u é um cliente, remova u e insira-o após v
+                            if (u != instance.getDepotIndex()) {
+                                Solution candidateSolution = applyM1(sol, r1, pos_u, r2, pos_v, instance);
+                                Chromosome candidate = parseToChromosome(instance, candidateSolution.routes);
+                                double delta = candidate.fitness - sol.fitness;
+                                if (delta < bestDelta) {
+                                    bestDelta = delta;
+                                    bestSolution = candidate;
+                                }
+                            }
+                            
+                            // M2: Se u e x são clientes, remova-os e insira (u,x) após v
+                            if (u != instance.getDepotIndex() && x != instance.getDepotIndex() && x != -1) {
+                                Solution candidateSolution = applyM2(sol, r1, pos_u, r2, pos_v, instance);
+                                Chromosome candidate = parseToChromosome(instance, candidateSolution.routes);
+                                double delta = candidate.fitness - sol.fitness;
+                                if (delta < bestDelta) {
+                                    bestDelta = delta;
+                                    bestSolution = candidate;
+                                }
+                            }
+                            
+                            // M3: Se u e x são clientes, remova-os e insira (x,u) após v
+                            if (u != instance.getDepotIndex() && x != instance.getDepotIndex() && x != -1) {
+                                Solution candidateSolution = applyM3(sol, r1, pos_u, r2, pos_v, instance);
+                                Chromosome candidate = parseToChromosome(instance, candidateSolution.routes);
+                                double delta = candidate.fitness - sol.fitness;
+                                if (delta < bestDelta) {
+                                    bestDelta = delta;
+                                    bestSolution = candidate;
+                                }
+                            }
+                            
+                            // M4: Se u e v são clientes, troque u e v
+                            if (u != instance.getDepotIndex() && v != instance.getDepotIndex()) {
+                                Solution candidateSolution = applyM4(sol, r1, pos_u, r2, pos_v, instance);
+                                Chromosome candidate = parseToChromosome(instance, candidateSolution.routes);
+                                double delta = candidate.fitness - sol.fitness;
+                                if (delta < bestDelta) {
+                                    bestDelta = delta;
+                                    bestSolution = candidate;
+                                }
+                            }
+                            
+                            // M5: Se (u,x) e v são clientes, troque (u,x) com v
+                            if (u != instance.getDepotIndex() && x != instance.getDepotIndex() && v != instance.getDepotIndex() && x != -1) {
+                                Solution candidateSolution = applyM5(sol, r1, pos_u, r2, pos_v, instance);
+                                Chromosome candidate = parseToChromosome(instance, candidateSolution.routes);
+                                double delta = candidate.fitness - sol.fitness;
+                                if (delta < bestDelta) {
+                                    bestDelta = delta;
+                                    bestSolution = candidate;
+                                }
+                            }
+                            
+                            // M6: Se (u,x) e (v,y) são clientes, troque (u,x) com (v,y)
+                            if (u != instance.getDepotIndex() && x != instance.getDepotIndex() &&
+                                v != instance.getDepotIndex() && y != instance.getDepotIndex() &&
+                                x != -1 && y != -1) {
+                                Solution candidateSolution = applyM6(sol, r1, pos_u, r2, pos_v, instance);
+                                Chromosome candidate = parseToChromosome(instance, candidateSolution.routes);
+                                double delta = candidate.fitness - sol.fitness;
+                                if (delta < bestDelta) {
+                                    bestDelta = delta;
+                                    bestSolution = candidate;
+                                }
+                            }
+                            
+                            // M7: Se T(u) = T(v), substitua (u,x) e (v,y) por (u,v) e (x,y)
+                            if (r1 == r2 && x != -1 && y != -1) {
+                                Solution candidateSolution = applyM7(sol, r1, pos_u, pos_v, instance);
+                                Chromosome candidate = parseToChromosome(instance, candidateSolution.routes);
+                                double delta = candidate.fitness - sol.fitness;
+                                if (delta < bestDelta) {
+                                    bestDelta = delta;
+                                    bestSolution = candidate;
+                                }
+                            }
+                            
+                            // M8: Se T(u) ≠ T(v), substitua (u,x) e (v,y) por (u,v) e (x,y)
+                            if (r1 != r2 && x != -1 && y != -1) {
+                                Solution candidateSolution = applyM8(sol, r1, pos_u, r2, pos_v, instance);
+                                Chromosome candidate = parseToChromosome(instance, candidateSolution.routes);
+                                double delta = candidate.fitness - sol.fitness;
+                                if (delta < bestDelta) {
+                                    bestDelta = delta;
+                                    bestSolution = candidate;
+                                }
+                            }
+                            
+                            // M9: Se T(u) ≠ T(v), substitua (u,x) e (v,y) por (u,y) e (x,v)
+                            if (r1 != r2 && x != -1 && y != -1) {
+                                Solution candidateSolution = applyM9(sol, r1, pos_u, r2, pos_v, instance);
+                                Chromosome candidate = parseToChromosome(instance, candidateSolution.routes);
+                                double delta = candidate.fitness - sol.fitness;
+                                if (delta < bestDelta) {
+                                    bestDelta = delta;
+                                    bestSolution = candidate;
+                                }
+                            }
+                            
+                        }
+                    }
+                }
+            }
+            if (bestDelta < 0) {
+                solution = bestSolution;
+            } else {
+                break;
+            }
+        }
+        return solution;
+    }
+
 public:
     CVRPSolver() : routes() {}
 
@@ -840,7 +1130,7 @@ public:
                 {
                     if (V[route[i - 1]] + cost < V[route[j]]) { // Relaxa
                         V[route[j]] = V[route[i - 1]] + cost;
-                        // P[route[j]] = route[i - 1]; // to do: verificar isso aqui 
+                        P[route[j]] = route[i - 1]; // to do: verificar isso aqui 
                     }
                     j++;
                 }
@@ -854,6 +1144,69 @@ public:
         return V[route[n -1]];
     }
 
+    // Solution extractSolution(const CVRPInstance instance, const vector<int>& P) {
+    //     const int n = instance.getDimension() - 1;
+    //     vector<vector<int>> routes;
+    //     routes.resize(n + 1);
+
+    //     int t = 0;
+    //     int j = n; 
+    //     int i;
+
+    //     do {
+    //         t += 1;
+    //         i = P[j];
+    //         for (int k = i + 1; k <= j; k++) {
+    //             routes[t].push_back(k);
+    //         }
+    //         j = i;
+    //     } while (i > 0);
+
+    //     cout << "Extract Solution: \n" << ": ";
+    //     for (size_t i = 0; i < routes.size(); i++)
+    //     {
+    //         cout << "Route #" << i + 1 << ": ";
+    //         for (size_t j = 0; j < routes[i].size(); j++)
+    //         {
+    //             cout << routes[i][j] << " ";
+    //         }
+    //         cout << "\n";
+    //     }
+
+    //     return Solution(routes, 0.0);
+    // }
+
+    Solution extractSolution(const CVRPInstance instance, const vector<int>& P,  const vector<int>& route) {
+        vector<vector<int>> routes;
+        int j = route.size() - 1;
+
+        while (j > 0) {
+            int i = P[j];
+            vector<int> subroute;
+            for (int k = i + 1; k <= j; k++) {
+                subroute.push_back(route[k]);
+            }
+            routes.push_back(subroute);
+            j = i;
+        }
+
+        // cout << "Extract Solution: \n" << ": ";
+        // for (size_t i = 0; i < routes.size(); i++)
+        // {
+        //     cout << "Route #" << i + 1 << ": ";
+        //     for (size_t j = 0; j < routes[i].size(); j++)
+        //     {
+        //         cout << routes[i][j] << " ";
+        //     }
+        //     cout << "\n";
+        // }
+
+        // // Opcional: reverter a ordem para que a primeira rota extraída seja a primeira na solução
+        // reverse(routes.begin(), routes.end());
+
+        return Solution(routes, 0.0);
+    }
+
     Chromosome parseToChromosome(CVRPInstance instance, vector<vector<int>> routes)
     {
         vector<int> result;
@@ -864,6 +1217,8 @@ public:
             result.insert(result.end(), subroute.begin(), subroute.end());
         }
         double fitness = splitProcedure(instance, result, P);
+
+        // extractSolution(instance, P, result);
         return Chromosome(result, P, fitness);
     }
 
@@ -956,7 +1311,8 @@ public:
             Chromosome aux = population[k];
             if (random < pm)
             {
-                Chromosome mutatedChromosome = localSearch(instance, childChromosome);
+                // Chromosome mutatedChromosome = localSearch(instance, childChromosome);
+                Chromosome mutatedChromosome = localSearch(childChromosome, instance);
                 
                 population[k] = mutatedChromosome;
                 
